@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>mood4kino</title>
+  <!-- Favicon, gönderdiğin tasarıma (yuvarlak noktalı, orantılı m harfi ve tam kırmızı arka plan) göre güncellendi -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23b20710'/><text x='45%' y='48%' font-family='Helvetica, Arial, sans-serif' font-weight='bold' font-size='68' fill='white' dominant-baseline='central' text-anchor='middle'>m</text><circle cx='70' cy='73' r='7' fill='white'/></svg>">
+  
+  <style>
+    :root {
+      --bg: #090a0f;
+      --panel: #161821;
+      --panel-light: #20232e;
+      --text: #f5f5f7;
+      --muted: #9b9eaa;
+      --accent: #e50914;
+      --accent-dark: #b20710;
+      --gold: #ffb800;
+    }
+
+    ::-webkit-scrollbar { display: none; }
+    * { box-sizing: border-box; -ms-overflow-style: none; scrollbar-width: none; }
+
+    body {
+      margin: 0; min-height: 100vh; color: var(--text);
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+      background: var(--bg);
+    }
+
+    /* --- SANATSAL BÖLÜNMÜŞ (SPLIT) VİTRİN --- */
+    .hero { 
+      position: relative; width: 100vw; height: 100vh; max-width: 100%; margin: 0; 
+      display: flex; flex-direction: row; background: var(--bg); overflow: hidden;
+    }
+    
+    /* VİDEO ARTIK TAM EKRAN VE EN ALTTA YER ALIYOR */
+    .hero-video { 
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+      object-fit: cover; pointer-events: none; z-index: 1; 
+    }
+
+    /* SOL TARAFIN BUZLU CAM EFEKTLİ VE GÖLGELİ KESKİN ARKA PLANI */
+    .hero-left-wrapper {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 2; pointer-events: none;
+      /* Kesik kenara tam oturan 3 boyutlu gölge */
+      filter: drop-shadow(15px 0px 25px rgba(0, 0, 0, 0.8));
+    }
+    .hero-left-bg {
+      width: 100%; height: 100%;
+      background: rgba(9, 10, 15, 0.55);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      clip-path: polygon(0 0, 50% 0, 41% 100%, 0 100%);
+    }
+
+    .hero-left {
+      width: 45%; height: 100%; display: flex; flex-direction: column; justify-content: center;
+      padding-left: 8%; padding-right: 4%; z-index: 4; text-align: left;
+      background: transparent;
+    }
+    .brand-title { margin: 0; font-size: clamp(3rem, 7vw, 5.5rem); letter-spacing: -0.05em; line-height: 1; text-shadow: 0 4px 16px rgba(0,0,0,0.5); }
+    
+    .brand-slogan {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #b20710; 
+      font-weight: 700; 
+      font-size: 1.15rem; 
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin: 8px 0 0 5px; 
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+    }
+
+    #search-form { width: 100%; max-width: 420px; margin-left: 5px; margin-top: 36px; }
+
+    .search-box {
+      display: flex; align-items: center; gap: 12px; padding: 8px 10px 8px 22px;
+      border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; 
+      background: rgba(22, 24, 33, 0.6); backdrop-filter: blur(12px); box-shadow: 0 18px 42px rgba(0, 0, 0, 0.4);
+      transition: border-color 200ms ease;
+    }
+    .search-box:focus-within { border-color: var(--accent); }
+    .search-icon { color: var(--muted); font-size: 1.4rem; background: transparent; border: none; cursor: pointer; outline: none; padding: 0; transition: color 0.2s; }
+    .search-icon:hover { color: var(--text); }
+    
+    input[type="search"]::-webkit-search-decoration,
+    input[type="search"]::-webkit-search-cancel-button,
+    input[type="search"]::-webkit-search-results-button,
+    input[type="search"]::-webkit-search-results-decoration {
+      -webkit-appearance: none;
+      display: none;
+    }
+    input[type="search"] { width: 100%; border: 0; outline: 0; color: var(--text); font: inherit; background: transparent; padding: 12px 0; font-size: 1.05rem; }
+    input::placeholder { color: #8e93a6; }
+
+    /* SAĞ TARAFIN GÖLGESİ (SİYAH ŞERİT YAPMAMASI İÇİN TAMAMEN ŞEFFAF BAŞLIYOR) */
+    .hero-right {
+      position: absolute; right: 0; top: 0; width: 60%; height: 100%;
+      z-index: 3; pointer-events: none;
+    }
+    .hero-overlay {
+      position: absolute; inset: 0;
+      /* Sol tarafta 0 şeffaflıkla (transparent) başlayıp sağa doğru hafifçe kararıyor */
+      background: linear-gradient(to right, rgba(9, 10, 15, 0) 0%, rgba(9, 10, 15, 0.1) 40%, rgba(9, 10, 15, 0.5) 100%);
+      pointer-events: none;
+    }
+
+    /* --- AKILLI YÜZEN MENÜ --- */
+    .floating-menu {
+      position: fixed; z-index: 9990; display: flex;
+      transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .floating-menu.hero-mode {
+      top: 30px; left: 8%; flex-direction: row; gap: 0;
+      background: rgba(22, 24, 33, 0.3); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.05); border-radius: 40px;
+      padding: 4px;
+    }
+    .floating-menu.hero-mode .floating-btn {
+      background: transparent; border: none; box-shadow: none;
+      padding: 10px 20px; color: #a4a7b5; border-radius: 36px;
+      font-size: 0.9rem; font-weight: 500;
+      transition: all 180ms ease;
+    }
+    .floating-menu.hero-mode .floating-btn:hover { 
+      background: var(--accent); 
+      color: #fff; 
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(229, 9, 20, 0.45);
+    }
+
+    .floating-menu.scrolled-mode {
+      top: calc(100vh - 120px); left: calc(100vw - 220px); flex-direction: column; gap: 12px;
+    }
+    .floating-menu.scrolled-mode .floating-btn {
+      padding: 14px 22px; border-radius: 30px; font-weight: 700; font-size: 0.95rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px);
+    }
+    .floating-menu.scrolled-mode .quiz-btn { background: rgba(31, 42, 68, 0.85); border: 1px solid #3b5998; color: #8cb4ff; }
+    .floating-menu.scrolled-mode .watchlist-btn { background: rgba(32, 35, 46, 0.85); border: 1px solid #363a4d; color: var(--text); }
+    .floating-menu.scrolled-mode .floating-btn:hover { transform: translateY(-4px) scale(1.03); }
+    .floating-btn { border: 1px solid transparent; font: inherit; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 180ms ease; }
+
+    .scroll-down-btn {
+      position: absolute; bottom: 40px; left: 8%; display: flex; align-items: center; gap: 10px;
+      color: var(--muted); cursor: pointer; transition: color 0.3s ease; z-index: 10;
+    }
+    .scroll-down-btn:hover { color: #fff; }
+    .scroll-down-btn span { font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: bold; }
+    .arrow-down {
+      display: flex; align-items: center; justify-content: center;
+      animation: floatDown 2s infinite ease-in-out;
+    }
+    @keyframes floatDown { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+
+    .page { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 40px 0 56px; display: flex; flex-direction: column; }
+    .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+    h2 { margin: 0; font-size: 1.35rem; }
+    .section-heading span { color: var(--muted); font-size: 0.9rem; }
+
+    .movie-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+    .movie-card { min-height: 280px; overflow: hidden; position: relative; display: flex; align-items: flex-end; border: 1px solid #2c2f3a; border-radius: 12px; background: linear-gradient(145deg, #292c37, #15171e); box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18); cursor: pointer; transition: all 180ms ease; }
+    .movie-card:hover { transform: translateY(-6px) scale(1.02); border-color: var(--accent); box-shadow: 0 14px 28px rgba(229, 9, 20, 0.25); }
+    .movie-poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+    .movie-info { position: absolute; right: 0; bottom: 0; left: 0; padding: 42px 14px 14px; background: linear-gradient(transparent, rgba(9, 10, 15, 0.95)); pointer-events: none; }
+    .movie-title { margin: 0; font-size: 0.98rem; line-height: 1.25; }
+    .movie-meta { margin: 6px 0 0; color: #b6b8c2; font-size: 0.78rem; display: flex; justify-content: space-between; }
+    .movie-score { color: var(--gold); font-weight: bold; }
+    .movie-status { grid-column: 1 / -1; margin: 0; padding: 28px; border: 1px dashed #3a3d4a; border-radius: 12px; color: var(--muted); text-align: center; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.82); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 99999; }
+    .modal-content { background: #161822; border: 1px solid #363a4d; border-radius: 18px; width: min(760px, 92%); max-height: 90vh; overflow-y: auto; padding: 26px; position: relative; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7); animation: popup 180ms cubic-bezier(0.16, 1, 0.3, 1); }
+    .modal-content::-webkit-scrollbar { width: 6px; }
+    .modal-content::-webkit-scrollbar-thumb { background: #363a4d; border-radius: 6px; }
+    @keyframes popup { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .modal-close { position: absolute; top: 12px; right: 14px; background: #242735; border: 0; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 1.2rem; cursor: pointer; z-index: 2; }
+    .modal-close:hover { background: var(--accent); transform: scale(1.08); }
+
+    .modal-top { display: flex; gap: 24px; align-items: flex-start; height: 330px; }
+    .modal-poster { width: 220px; height: 330px; object-fit: cover; border-radius: 12px; flex-shrink: 0; box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
+    
+    .modal-info { flex: 1; display: flex; flex-direction: column; text-align: left; min-width: 0; height: 100%; }
+    .modal-info h3 { margin: 0 0 10px; font-size: 1.55rem; line-height: 1.2; }
+    .modal-tags { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 8px; margin-bottom: 12px; font-size: 0.85rem; }
+    .modal-tags span { background: #232635; padding: 5px 10px; border-radius: 8px; color: #d1d3dc; }
+    .modal-tags .rating { color: var(--gold); font-weight: bold; background: #2f2a1a; }
+    
+    .platform-inline { display: inline-flex; align-items: center; gap: 6px; margin-left: 4px; }
+    .platform-inline img { width: 22px; height: 22px; border-radius: 4px; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+
+    .modal-overview { font-size: 0.95rem; line-height: 1.55; color: #cfd2de; margin-top: 8px; flex: 1; overflow-y: auto; padding-right: 8px; }
+    .modal-overview::-webkit-scrollbar { width: 4px; display: block; }
+    .modal-overview::-webkit-scrollbar-thumb { background: #363a4d; border-radius: 4px; }
+
+    .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: auto; padding-top: 12px; width: 100%; }
+    .trailer-btn, .toggle-watchlist-btn { width: 100%; display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 8px; font-size: 0.95rem; font-weight: bold; text-decoration: none; gap: 8px; white-space: nowrap; cursor: pointer; border: none; transition: all 150ms ease; }
+    .trailer-btn { background: #e33a45; color: #ffffff; }
+    .trailer-btn:hover { background: #f04a55; }
+    .trailer-btn.disabled-btn { background: #232635; color: #777b88; cursor: not-allowed; border: 1px solid #363a4d; }
+    .trailer-btn.disabled-btn:hover { background: #232635; }
+    .btn-add { background: var(--panel-light); border: 1px solid #4b4e5b; color: #fff; }
+    .btn-add:hover { background: #2f3444; border-color: var(--accent); }
+    .btn-remove { background: #3b1419; border: 1px solid #701c24; color: #ff9da4; }
+    .btn-remove:hover { background: #4f151c; }
+
+    .similar-section { margin-top: 24px; padding-top: 18px; border-top: 1px solid #292e3e; text-align: left; width: 100%; }
+    .similar-title { font-size: 0.85rem; font-weight: bold; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px; }
+    .similar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(95px, 1fr)); gap: 12px; }
+    .similar-item { background: #1e212d; border: 1px solid #2c3040; border-radius: 8px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; padding-bottom: 6px; transition: transform 140ms ease; }
+    .similar-item:hover { transform: translateY(-4px); border-color: var(--accent); }
+    .similar-item img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+    .similar-item span { font-size: 0.7rem; font-weight: bold; color: var(--text); margin-top: 6px; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+
+    .hidden-modal { display: none !important; }
+    .quiz-step { display: none; margin-top: 16px; }
+    .quiz-step.active { display: block; }
+    .quiz-title { font-size: 1.2rem; margin: 0 0 6px; }
+    .quiz-desc { color: var(--muted); font-size: 0.85rem; margin: 0 0 16px; }
+    .chip-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .chip { background: #20232e; border: 1px solid #363a4d; padding: 8px 14px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; user-select: none; transition: all 140ms ease; }
+    .chip:hover { border-color: #63687e; }
+    .chip.selected { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: bold; }
+    .slider-container { background: #20232e; padding: 16px; border-radius: 12px; margin-bottom: 20px; }
+    .slider-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
+    input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+    .quiz-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 14px; border-top: 1px solid #292d3e; }
+    .quiz-nav button { padding: 12px 22px; font-size: 0.95rem; font-weight: bold; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-next-step, #quiz-finish-btn { background: var(--accent) !important; color: #ffffff !important; border: 1px solid var(--accent-dark) !important; box-shadow: 0 4px 14px rgba(229, 9, 20, 0.45); }
+    .btn-next-step:hover, #quiz-finish-btn:hover { background: var(--accent-dark) !important; transform: translateY(-2px); }
+    .btn-prev-step { background: #232737 !important; color: #e2e5ef !important; border: 1px solid #43485e !important; }
+    .btn-prev-step:hover { background: #2f3448 !important; color: #ffffff !important; }
+    .drawer-list { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+    .drawer-item { display: flex; align-items: center; gap: 14px; background: #20232e; padding: 10px 14px; border-radius: 10px; border: 1px solid #2e3240; }
+    .drawer-thumb { width: 46px; height: 64px; object-fit: cover; border-radius: 6px; }
+    .drawer-info { flex: 1; }
+    .drawer-title { margin: 0; font-size: 0.95rem; }
+    .drawer-meta { margin: 4px 0 0; color: var(--muted); font-size: 0.8rem; }
+    .drawer-del-btn { background: transparent; border: 0; color: #ff6b6b; font-size: 1.1rem; padding: 6px; cursor: pointer; }
+
+    @media (max-width: 850px) {
+      .hero { flex-direction: column; justify-content: center; align-items: center; }
+      .hero-left { width: 100%; padding: 20px; text-align: center; z-index: 4; align-items: center; background: transparent; }
+      .hero-right { width: 100%; clip-path: none; opacity: 0.3; }
+      .hero-video { opacity: 0.3; }
+      .hero-left-wrapper { display: none; }
+      .brand-slogan { margin: 10px auto 30px; }
+      .movie-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .modal-top { flex-direction: column; align-items: center; height: auto; }
+      .modal-info { height: auto; }
+      .modal-overview { flex: none; overflow-y: visible; }
+      .modal-actions { grid-template-columns: 1fr; }
+      .floating-menu.hero-mode { top: 12px; left: 50%; transform: translateX(-50%); }
+      .floating-menu.scrolled-mode { top: auto; bottom: 16px; left: auto; right: 16px; }
+      .scroll-down-btn { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="floating-menu hero-mode" id="smart-menu">
+    <button id="open-quiz-btn" class="floating-btn quiz-btn" type="button">Test ile Ara</button>
+    <button id="open-watchlist-btn" class="floating-btn watchlist-btn" type="button">İzleme Listesi</button>
+  </div>
+
+  <section class="hero" id="hero-section">
+    <video id="hero-video" class="hero-video" muted playsinline></video>
+    
+    <!-- SOL TARAFIN BUZLU CAM EFEKTLİ VE GÖLGELİ KESKİN ARKA PLANI -->
+    <div class="hero-left-wrapper">
+      <div class="hero-left-bg"></div>
+    </div>
+
+    <div class="hero-right">
+      <div class="hero-overlay"></div>
+    </div>
+
+    <div class="hero-left">
+      <h1 class="brand-title">mood4kino</h1>
+      <div class="brand-slogan">DOĞRU FİLM. TAM ZAMANI.</div>
+      <form id="search-form">
+        <div class="search-box">
+          <button type="submit" class="search-icon">⌕</button>
+          <input id="search-input" type="search" placeholder="Yağmurlu günde izlenecek sakin bir yol filmi" autocomplete="off" spellcheck="false">
+        </div>
+      </form>
+    </div>
+
+    <div class="scroll-down-btn" onclick="document.querySelector('.discover').scrollIntoView({behavior: 'smooth'})">
+      <span>keşfet</span>
+      <div class="arrow-down">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <polyline points="19 12 12 19 5 12"></polyline>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <main class="page">
+    <section class="discover">
+      <div class="section-heading">
+        <h2>Size Özel Öneriler</h2>
+        <span id="movie-count">Filmler yükleniyor…</span>
+      </div>
+      <div class="movie-grid" id="movie-grid">
+        <p class="movie-status">Popüler filmler yükleniyor…</p>
+      </div>
+    </section>
+  </main>
+
+  <div id="dynamic-modals-container"></div>
+
+  <div id="watchlist-modal" class="modal-overlay hidden-modal">
+    <div class="modal-content">
+      <button id="watchlist-close-btn" class="modal-close" type="button">&times;</button>
+      <h3 style="margin: 0 0 4px; font-size: 1.4rem;">İzleme Listem</h3>
+      <p style="color: var(--muted); font-size: 0.85rem; margin: 0;">Kaydettiğin filmler burada saklanır.</p>
+      <div class="drawer-list" id="watchlist-items-container"></div>
+    </div>
+  </div>
+
+  <div id="quiz-modal" class="modal-overlay hidden-modal">
+    <div class="modal-content" style="max-width: 500px;">
+      <button id="quiz-close-btn" class="modal-close" type="button">&times;</button>
+      <div class="quiz-step active" id="quiz-step-1">
+        <h3 class="quiz-title">1. Adım: Hangi türleri izlemek istersin?</h3>
+        <p class="quiz-desc">Birden fazla tür seçebilirsin.</p>
+        <div class="chip-grid" id="genre-chips">
+          <div class="chip" data-id="28">Aksiyon</div><div class="chip" data-id="35">Komedi</div>
+          <div class="chip" data-id="27">Korku</div><div class="chip" data-id="878">Bilim Kurgu</div>
+          <div class="chip" data-id="10749">Romantik</div><div class="chip" data-id="53">Gerilim</div>
+          <div class="chip" data-id="18">Dram</div><div class="chip" data-id="16">Animasyon</div>
+          <div class="chip" data-id="9648">Gizem</div><div class="chip" data-id="80">Suç</div>
+        </div>
+        <div class="quiz-nav"><div></div><button class="btn-next-step" id="quiz-next-1" type="button">Devam Et →</button></div>
+      </div>
+      <div class="quiz-step" id="quiz-step-2">
+        <h3 class="quiz-title">2. Adım: Hangi dönem filmleri olsun?</h3>
+        <p class="quiz-desc">Görsel tarzı ve dönemi belirle.</p>
+        <div class="chip-grid" id="year-chips">
+          <div class="chip selected" data-start="2020" data-end="2026">Yeni Çıkanlar (2020+)</div>
+          <div class="chip" data-start="2010" data-end="2019">2010'lar</div>
+          <div class="chip" data-start="2000" data-end="2009">2000'ler</div>
+          <div class="chip" data-start="1990" data-end="1999">90'lar Nostaljisi</div>
+          <div class="chip" data-start="1970" data-end="1989">Klasikler (70-80'ler)</div>
+          <div class="chip" data-start="" data-end="">Fark Etmez</div>
+        </div>
+        <div class="quiz-nav"><button class="btn-prev-step" id="quiz-prev-2" type="button">← Geri</button><button class="btn-next-step" id="quiz-next-2" type="button">Devam Et →</button></div>
+      </div>
+      <div class="quiz-step" id="quiz-step-3">
+        <h3 class="quiz-title">3. Adım: Puan Kriteri</h3>
+        <p class="quiz-desc">Minimum ne kadar kaliteli bir film arıyorsun?</p>
+        <div class="slider-container">
+          <div class="slider-header"><span>Minimum Puan</span><strong id="rating-val" style="color:var(--gold);">★ 7.0+</strong></div>
+          <input type="range" id="rating-range" min="5.0" max="8.5" step="0.5" value="7.0">
+        </div>
+        <div class="quiz-nav"><button class="btn-prev-step" id="quiz-prev-3" type="button">← Geri</button><button class="btn-next-step" id="quiz-finish-btn" type="button">✨ Filmleri Bul</button></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '';
+    const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+    
+    document.addEventListener("DOMContentLoaded", () => {
+      
+      const movieGrid = document.querySelector('#movie-grid');
+      const movieCount = document.querySelector('#movie-count');
+      const searchForm = document.querySelector('#search-form');
+      const searchInput = document.querySelector('#search-input');
+      const dynamicModalsContainer = document.querySelector('#dynamic-modals-container');
+
+      const watchlistModal = document.querySelector('#watchlist-modal');
+      const watchlistCloseBtn = document.querySelector('#watchlist-close-btn');
+      const openWatchlistBtn = document.querySelector('#open-watchlist-btn');
+      const watchlistItemsContainer = document.querySelector('#watchlist-items-container');
+
+      const quizModal = document.querySelector('#quiz-modal');
+      const openQuizBtn = document.querySelector('#open-quiz-btn');
+      const quizCloseBtn = document.querySelector('#quiz-close-btn');
+      const step1 = document.querySelector('#quiz-step-1');
+      const step2 = document.querySelector('#quiz-step-2');
+      const step3 = document.querySelector('#quiz-step-3');
+      const ratingRange = document.querySelector('#rating-range');
+      const ratingVal = document.querySelector('#rating-val');
+
+      const smartMenu = document.getElementById('smart-menu');
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > window.innerHeight * 0.3) {
+          smartMenu.classList.remove('hero-mode');
+          smartMenu.classList.add('scrolled-mode');
+        } else {
+          smartMenu.classList.add('hero-mode');
+          smartMenu.classList.remove('scrolled-mode');
+        }
+      });
+
+      const timestamps = [0, 3, 147, 295, 440, 580, 735, 832, 978, 1025, 1191, 1334, 1479, 1607, 1743, 1823, 1982, 2126, 2272, 2394, 2508, 2678, 2791, 2928, 3064, 3152, 3259, 3368, 3447, 3503, 3552, 3613, 3720, 3864, 3984, 4147];
+      const heroVideo = document.getElementById('hero-video');
+      
+      heroVideo.muted = true;
+      heroVideo.playsInline = true;
+      heroVideo.src = "/static/derleme.mp4";
+      
+      let segmentTimer;
+      function playRandomSegment() {
+        const randomIndex = Math.floor(Math.random() * timestamps.length);
+        heroVideo.currentTime = timestamps[randomIndex] + 7;
+        
+        const playPromise = heroVideo.play();
+        if (playPromise !== undefined) { playPromise.catch(err => console.log("Otomatik oynatma bekletiliyor:", err)); }
+        
+        clearTimeout(segmentTimer);
+        segmentTimer = setTimeout(() => {
+          playRandomSegment();
+        }, 8000); 
+      }
+
+      if (heroVideo.readyState >= 1) { playRandomSegment(); } 
+      else { heroVideo.addEventListener('loadedmetadata', playRandomSegment); }
+
+      function getWatchlist() { return JSON.parse(localStorage.getItem('mood4kino_watchlist') || '[]'); }
+      function saveWatchlist(list) { localStorage.setItem('mood4kino_watchlist', JSON.stringify(list)); }
+      function isMovieInWatchlist(id) { return getWatchlist().some(item => item.id === id); }
+      function toggleWatchlistMovie(movieData) {
+        let list = getWatchlist();
+        const exists = list.some(m => m.id === movieData.id);
+        if (exists) { list = list.filter(m => m.id !== movieData.id); } 
+        else { list.push({ id: movieData.id, title: movieData.title || movieData.original_title, poster_path: movieData.poster_path, release_date: movieData.release_date, vote_average: movieData.vote_average }); }
+        saveWatchlist(list); return !exists;
+      }
+
+      function createMovieCard(movie) {
+        const card = document.createElement('article'); card.className = 'movie-card';
+        if (movie.poster_path) {
+          const poster = document.createElement('img'); poster.className = 'movie-poster';
+          poster.src = `${IMAGE_BASE_URL}${movie.poster_path}`; poster.alt = movie.title || 'Afiş'; poster.loading = 'lazy'; card.append(poster);
+        }
+        const info = document.createElement('div'); info.className = 'movie-info';
+        const title = document.createElement('h3'); title.className = 'movie-title'; title.textContent = movie.title || movie.original_title || 'İsimsiz film'; info.append(title);
+        const meta = document.createElement('div'); meta.className = 'movie-meta';
+        const year = document.createElement('span'); year.textContent = movie.release_date ? movie.release_date.slice(0, 4) : 'Tarih Yok'; meta.append(year);
+        if (movie.vote_average) { const score = document.createElement('span'); score.className = 'movie-score'; score.textContent = `★ ${movie.vote_average.toFixed(1)}`; meta.append(score); }
+        info.append(meta); card.append(info);
+        card.addEventListener('click', () => showMovieDetails(movie.id));
+        return card;
+      }
+
+      let baseZIndex = 99999;
+      
+      window.showMovieDetails = async function(movieId) {
+        baseZIndex++; 
+        
+        const modalId = `film-modal-${movieId}-${Date.now()}`;
+        const newModal = document.createElement('div');
+        newModal.className = 'modal-overlay';
+        newModal.style.zIndex = baseZIndex;
+        newModal.id = modalId;
+        
+        newModal.innerHTML = `
+          <div class="modal-content">
+            <button class="modal-close" type="button" onclick="document.getElementById('${modalId}').remove()">&times;</button>
+            <div class="modal-body">
+              <p style="color:var(--muted); text-align:center; width:100%; padding: 40px 0;">Detaylar yükleniyor...</p>
+            </div>
+          </div>
+        `;
+        
+        newModal.addEventListener('click', (e) => {
+          if (e.target === newModal) { newModal.remove(); }
+        });
+
+        dynamicModalsContainer.appendChild(newModal);
+        const modalBody = newModal.querySelector('.modal-body');
+
+        try {
+          const res = await fetch(`${API_BASE}/film/${movieId}`);
+          if (!res.ok) throw new Error('Detay çekilemedi');
+          const film = await res.json();
+
+          const duration = film.runtime ? `${film.runtime} dk` : 'Süre Belirtilmemiş';
+          const rating = film.vote_average ? `★ ${film.vote_average.toFixed(1)} / 10` : 'Puan Yok';
+          const genres = film.genres && film.genres.length > 0 ? film.genres.map(g => g.name).join(', ') : 'Genel';
+          const posterSrc = film.poster_path ? `${IMAGE_BASE_URL}${film.poster_path}` : '';
+          const releaseYear = film.release_date ? film.release_date.slice(0, 4) : '';
+          const inList = isMovieInWatchlist(film.id);
+          const trailerKey = film.trailer_key;
+
+          let platformHtml = '';
+          const streamProviders = film.platforms?.stream || [];
+          const buyProviders = film.platforms?.buy || [];
+          let activeProviders = streamProviders.length > 0 ? streamProviders : buyProviders;
+
+          if (activeProviders.length > 0) {
+            platformHtml = `<div class="platform-inline">${activeProviders.slice(0,3).map(p => `<img src="${p.logo}" alt="${p.name}" title="${p.name}">`).join('')}</div>`;
+          }
+
+          modalBody.innerHTML = `
+            <div class="modal-top">
+              ${posterSrc ? `<img class="modal-poster" src="${posterSrc}" alt="${film.title}">` : ''}
+              <div class="modal-info">
+                <h3>${film.title || film.original_title}</h3>
+                <div class="modal-tags">
+                  <span class="rating">${rating}</span>
+                  <span>⏱ ${duration}</span>
+                  ${releaseYear ? `<span>📅 ${releaseYear}</span>` : ''}
+                  ${platformHtml}
+                </div>
+                <p style="color: var(--muted); font-size: 0.85rem; margin: 4px 0 8px;"><strong>Tür:</strong> ${genres}</p>
+                <p class="modal-overview">${film.overview || 'Bu film için henüz özet eklenmemiş.'}</p>
+                
+                <div class="modal-actions">
+                  ${trailerKey ? `<a href="https://www.youtube.com/watch?v=${trailerKey}" target="_blank" rel="noopener noreferrer" class="trailer-btn">▶ Fragmanı İzle</a>` : `<button class="trailer-btn disabled-btn" disabled>🚫 Fragman Mevcut Değil</button>`}
+                  <button id="modal-watchlist-btn-${modalId}" class="toggle-watchlist-btn ${inList ? 'btn-remove' : 'btn-add'}" type="button">${inList ? '✕ Listeden Çıkar' : '＋ İzleme Listesi'}</button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="similar-section">
+              <div class="similar-title">✦ Buna Benzer Filmler</div>
+              <div id="similar-list-${modalId}" class="similar-grid"><p style="color: var(--muted); font-size: 0.8rem; grid-column: 1/-1;">Benzer filmler aranıyor...</p></div>
+            </div>
+          `;
+
+          const btn = newModal.querySelector(`#modal-watchlist-btn-${modalId}`);
+          btn.addEventListener('click', () => {
+            const added = toggleWatchlistMovie(film);
+            btn.className = added ? 'toggle-watchlist-btn btn-remove' : 'toggle-watchlist-btn btn-add';
+            btn.textContent = added ? '✕ Listeden Çıkar' : '＋ İzleme Listesi';
+          });
+
+          const similarContainer = newModal.querySelector(`#similar-list-${modalId}`);
+          fetch(`${API_BASE}/film/${movieId}/benzerler`)
+            .then(res => { if (!res.ok) throw new Error('Benzer filmler çekilemedi'); return res.json(); })
+            .then(data => {
+              const similar = data.results || [];
+              if (similar.length === 0) { similarContainer.innerHTML = '<p style="color: var(--muted); font-size: 0.8rem; grid-column: 1/-1;">Benzer film bulunamadı.</p>'; return; }
+              
+              similarContainer.innerHTML = similar.map(s => `
+                <div class="similar-item" onclick="showMovieDetails(${s.id})">
+                  <img src="${IMAGE_BASE_URL}${s.poster_path}" alt="${s.title || s.original_title}">
+                  <span>${s.title || s.original_title}</span>
+                </div>
+              `).join('');
+            })
+            .catch(() => { similarContainer.innerHTML = '<p style="color: var(--muted); font-size: 0.8rem; grid-column: 1/-1;">Benzer filmler yüklenemedi.</p>'; });
+        } catch (err) { modalBody.innerHTML = '<p style="color:#ff6b6b; text-align:center; width:100%;">Film detayları yüklenirken hata oluştu.</p>'; }
+      };
+
+      function renderWatchlistDrawer() {
+        const list = getWatchlist();
+        if (list.length === 0) { watchlistItemsContainer.innerHTML = '<p style="color:var(--muted); text-align:center; padding: 24px 0;">Henüz listenize film eklemediniz.</p>'; return; }
+        watchlistItemsContainer.innerHTML = list.map(m => `
+          <div class="drawer-item">
+            ${m.poster_path ? `<img class="drawer-thumb" src="${IMAGE_BASE_URL}${m.poster_path}" alt="">` : ''}
+            <div class="drawer-info" style="cursor:pointer;" onclick="openDetailFromDrawer(${m.id})">
+              <h4 class="drawer-title">${m.title}</h4>
+              <p class="drawer-meta">${m.release_date ? m.release_date.slice(0, 4) : ''} ${m.vote_average ? `• ★ ${m.vote_average.toFixed(1)}` : ''}</p>
+            </div>
+            <button class="drawer-del-btn" onclick="removeFromDrawer(${m.id})" title="Listeden Kaldır">&times;</button>
+          </div>
+        `).join('');
+      }
+
+      window.openDetailFromDrawer = (id) => { watchlistModal.classList.add('hidden-modal'); showMovieDetails(id); };
+      window.removeFromDrawer = (id) => { saveWatchlist(getWatchlist().filter(m => m.id !== id)); renderWatchlistDrawer(); };
+
+      openQuizBtn.addEventListener('click', () => { quizModal.classList.remove('hidden-modal'); goToStep(1); });
+      function goToStep(num) { step1.classList.toggle('active', num === 1); step2.classList.toggle('active', num === 2); step3.classList.toggle('active', num === 3); }
+
+      document.querySelectorAll('#genre-chips .chip').forEach(chip => { chip.addEventListener('click', () => chip.classList.toggle('selected')); });
+      document.querySelectorAll('#year-chips .chip').forEach(chip => {
+        chip.addEventListener('click', () => { document.querySelectorAll('#year-chips .chip').forEach(c => c.classList.remove('selected')); chip.classList.add('selected'); });
+      });
+      ratingRange.addEventListener('input', (e) => { ratingVal.textContent = `★ ${parseFloat(e.target.value).toFixed(1)}+`; });
+
+      document.querySelector('#quiz-next-1').addEventListener('click', () => goToStep(2));
+      document.querySelector('#quiz-prev-2').addEventListener('click', () => goToStep(1));
+      document.querySelector('#quiz-next-2').addEventListener('click', () => goToStep(3));
+      document.querySelector('#quiz-prev-3').addEventListener('click', () => goToStep(2));
+
+      document.querySelector('#quiz-finish-btn').addEventListener('click', async () => {
+        quizModal.classList.add('hidden-modal');
+        const selectedGenres = Array.from(document.querySelectorAll('#genre-chips .chip.selected')).map(c => c.dataset.id).join(',');
+        const selectedYear = document.querySelector('#year-chips .chip.selected');
+        const yearStart = selectedYear ? selectedYear.dataset.start : '';
+        const yearEnd = selectedYear ? selectedYear.dataset.end : '';
+        const minRating = ratingRange.value;
+
+        document.querySelector('.discover').scrollIntoView({behavior: 'smooth'});
+        movieGrid.innerHTML = '<p class="movie-status">Kriterlerinize en uygun filmler bulunuyor…</p>';
+        try {
+          const queryParams = new URLSearchParams({ genres: selectedGenres, year_start: yearStart, year_end: yearEnd, min_rating: minRating });
+          const res = await fetch(`${API_BASE}/test-ara?${queryParams.toString()}`);
+          if (!res.ok) throw new Error("Arama başarısız");
+          const data = await res.json();
+          const movies = data.results || [];
+          if (movies.length === 0) { movieGrid.innerHTML = '<p class="movie-status">Bu kriterlere uygun film bulunamadı. Lütfen kriterleri genişletin.</p>'; return; }
+          movieGrid.replaceChildren(...movies.map(createMovieCard));
+          movieCount.textContent = `Kriterlerinize uyan ${movies.length} film bulundu`;
+        } catch (e) { movieGrid.innerHTML = '<p class="movie-status">Filtreleme yapılamadı. Sunucu bağlantısını kontrol edin.</p>'; }
+      });
+
+      [watchlistCloseBtn, quizCloseBtn].forEach(btn => {
+        btn.addEventListener('click', () => { watchlistModal.classList.add('hidden-modal'); quizModal.classList.add('hidden-modal'); });
+      });
+
+      openWatchlistBtn.addEventListener('click', () => { renderWatchlistDrawer(); watchlistModal.classList.remove('hidden-modal'); });
+
+      async function loadPopularMovies() {
+        try {
+          const response = await fetch(`${API_BASE}/populer`);
+          if (!response.ok) throw new Error("API yanıt vermedi");
+          const data = await response.json();
+          const movies = data.results || [];
+          movieGrid.replaceChildren(...movies.map(createMovieCard));
+          movieCount.textContent = `${movies.length} popüler film`;
+        } catch (error) { 
+          movieGrid.innerHTML = '<p class="movie-status">Filmler yüklenemedi. Sunucu bağlantısını kontrol ediniz.</p>'; 
+        }
+      }
+
+      async function searchMoviesWithAI(prompt) {
+        document.querySelector('.discover').scrollIntoView({behavior: 'smooth'});
+        
+        movieGrid.innerHTML = '<p class="movie-status">Yapay Zeka öneri hazırlıyor, lütfen bekleyin...</p>';
+        try {
+          const response = await fetch(`${API_BASE}/ai-ara?prompt=${encodeURIComponent(prompt)}`);
+          
+          if (!response.ok) {
+              const errData = await response.json().catch(() => ({}));
+              throw new Error(errData.hata || "Yapay Zeka API hatası");
+          }
+          
+          const data = await response.json();
+          const movies = data.results || [];
+          if (movies.length === 0) { movieGrid.innerHTML = '<p class="movie-status">Öneri bulunamadı.</p>'; return; }
+          
+          movieGrid.replaceChildren(...movies.map(createMovieCard));
+          movieCount.textContent = `${movies.length} yapay zeka önerisi`;
+        } catch (error) { 
+          movieGrid.innerHTML = `<p class="movie-status" style="color: #ff6b6b;">Hata: ${error.message}</p>`; 
+        }
+      }
+
+      searchForm.addEventListener('submit', (event) => {
+        event.preventDefault(); const p = searchInput.value.trim(); if (p) searchMoviesWithAI(p);
+      });
+
+      loadPopularMovies();
+
+    });
+  </script>
+</body>
+</html>
