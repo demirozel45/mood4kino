@@ -9,9 +9,8 @@ CORS(app)
 
 # API Anahtarları (Render üzerinden Environment Variables olarak girilebilir)
 # API Anahtarları artık kodun içinde kabak gibi durmayacak, Render panelinden güvenle vereceğiz:
-TMDB_API_KEY = os.environ.get("95122df100f8d10457c8e200131f3ee5")
-GROQ_API_KEY = os.environ.get("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")
-
+TMDB_API_KEY = os.environ.get
+GROQ_API_KEY = os.environ.get
 @app.route("/")
 def anasayfa():
     return send_from_directory(".", "index.html")
