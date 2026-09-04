@@ -7,9 +7,9 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-# API Anahtarları (Ortam değişkeni yoksa doğrudan çalışan yedek anahtarlar)
-TMDB_API_KEY = os.environ.get("TMDB_API_KEY") or "95122df100f8d10457c8e200131f3ee5"
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY") or "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"
+# Render üzerinde Environment Variables varsa alır, yoksa doğrudan verdiğin anahtarları fallback olarak kullanır
+TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "95122df100f8d10457c8e200131f3ee5")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
 
 @app.route("/")
 def anasayfa():
@@ -30,7 +30,7 @@ def ingilizceyi_turkceye_cevir(metin):
                 ],
                 "temperature": 0.2,
             },
-            timeout=8,
+            timeout=10,
         )
         if res.ok:
             cevap = res.json()["choices"][0]["message"]["content"].strip()
@@ -42,7 +42,7 @@ def ingilizceyi_turkceye_cevir(metin):
     try:
         url = "https://translate.googleapis.com/translate_a/single"
         params = {"client": "gtx", "sl": "en", "tl": "tr", "dt": "t", "q": metin}
-        res = requests.get(url, params=params, timeout=5)
+        res = requests.get(url, params=params, timeout=10)
         if res.ok:
             ceviri_parcalari = res.json()[0]
             return "".join([parca[0] for parca in ceviri_parcalari])
@@ -52,17 +52,13 @@ def ingilizceyi_turkceye_cevir(metin):
 
 @app.route("/populer")
 def populer_filmler():
-    # Asla boş dönmeyecek garantili endpoint
-    url = "https://api.themoviedb.org/3/movie/popular"
-    params = {"api_key": TMDB_API_KEY, "language": "tr-TR", "page": 1}
+    rastgele_sayfa = random.randint(1, 5)
+    url = "https://api.themoviedb.org/3/trending/movie/week"
+    params = {"api_key": TMDB_API_KEY, "language": "tr-TR", "page": rastgele_sayfa}
     try:
         res = requests.get(url, params=params, timeout=10)
         data = res.json()
         filmler = data.get("results", [])
-        if not filmler:
-            params["language"] = "en-US"
-            res = requests.get(url, params=params, timeout=10)
-            filmler = res.json().get("results", [])
         random.shuffle(filmler)
         return jsonify({"results": filmler})
     except Exception as e:
@@ -77,7 +73,7 @@ def test_ara():
     url = "https://api.themoviedb.org/3/discover/movie"
     params = {
         "api_key": TMDB_API_KEY, "language": "tr-TR", "sort_by": "popularity.desc",
-        "vote_count.gte": 50, "vote_average.gte": min_rating,
+        "vote_count.gte": 100, "vote_average.gte": min_rating,
     }
     if genres:
         params["with_genres"] = genres
