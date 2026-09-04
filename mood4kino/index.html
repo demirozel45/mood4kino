@@ -39,18 +39,17 @@
       object-fit: cover; pointer-events: none; z-index: 1; 
     }
 
-    /* Sol taraftaki keskin açılı ve orantısı korunan buzlu cam katmanı */
     .hero-left-wrapper {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      position: absolute; top: 0; left: 0; width: 55%; height: 100%;
       z-index: 2; pointer-events: none;
-      filter: drop-shadow(12px 0px 28px rgba(0, 0, 0, 0.85));
+      filter: drop-shadow(14px 0px 28px rgba(0, 0, 0, 0.85));
     }
     .hero-left-bg {
       width: 100%; height: 100%;
-      background: rgba(9, 10, 15, 0.62);
+      background: rgba(9, 10, 15, 0.55);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      clip-path: polygon(0 0, 50% 0, 41% 100%, 0 100%);
+      clip-path: polygon(0 0, 92% 0, 74% 100%, 0 100%);
     }
 
     .hero-left {
@@ -325,7 +324,6 @@
     </section>
   </main>
 
-  <!-- Film Detay Modalı (Geri Gitme ve Yalnızca Butonla Kapatma Destekli) -->
   <div id="movie-detail-modal" class="modal-overlay hidden-modal">
     <div class="modal-content">
       <div class="modal-nav-buttons">
@@ -433,29 +431,43 @@
         }
       });
 
-      const timestamps = [0, 3, 147, 295, 440, 580, 735, 832, 978, 1025, 1191, 1334, 1479, 1607, 1743, 1823, 1982, 2126, 2272, 2394, 2508, 2678, 2791, 2928, 3064, 3152, 3259, 3368, 3447, 3503, 3552, 3613, 3720, 3864, 3984, 4147];
+      // Dinamik Video Oynatıcı: static klasöründeki video listesi
+      const videoList = [
+        "/static/a.mp4",
+        "/static/b.mp4",
+        "/static/c.mp4",
+        "/static/d.mp4",
+        "/static/e.mp4"
+      ];
+
       const heroVideo = document.getElementById('hero-video');
-      
       heroVideo.muted = true;
       heroVideo.playsInline = true;
-      heroVideo.src = "/static/derleme.mp4";
-      
-      let segmentTimer;
-      function playRandomSegment() {
-        const randomIndex = Math.floor(Math.random() * timestamps.length);
-        heroVideo.currentTime = timestamps[randomIndex] + 7;
+      heroVideo.autoplay = true;
+
+      let currentVideoIndex = -1;
+      let videoChangeTimer;
+
+      function playRandomVideo() {
+        let nextIndex;
+        do {
+          nextIndex = Math.floor(Math.random() * videoList.length);
+        } while (videoList.length > 1 && nextIndex === currentVideoIndex);
+        
+        currentVideoIndex = nextIndex;
+        heroVideo.src = videoList[currentVideoIndex];
         
         const playPromise = heroVideo.play();
-        if (playPromise !== undefined) { playPromise.catch(err => console.log("Otomatik oynatma bekletiliyor:", err)); }
-        
-        clearTimeout(segmentTimer);
-        segmentTimer = setTimeout(() => {
-          playRandomSegment();
-        }, 8000); 
+        if (playPromise !== undefined) {
+          playPromise.catch(err => console.log("Otomatik oynatma bekletiliyor:", err));
+        }
+
+        clearTimeout(videoChangeTimer);
+        videoChangeTimer = setTimeout(playRandomVideo, 8000);
       }
 
-      if (heroVideo.readyState >= 1) { playRandomSegment(); } 
-      else { heroVideo.addEventListener('loadedmetadata', playRandomSegment); }
+      heroVideo.addEventListener('ended', playRandomVideo);
+      playRandomVideo();
 
       function getWatchlist() { return JSON.parse(localStorage.getItem('mood4kino_watchlist') || '[]'); }
       function saveWatchlist(list) { localStorage.setItem('mood4kino_watchlist', JSON.stringify(list)); }
