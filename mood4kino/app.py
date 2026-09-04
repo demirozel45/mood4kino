@@ -155,7 +155,8 @@ def ai_ara():
     if not prompt: return jsonify({"results": []})
     
     model_list = [
-        "meta-llama/llama-4-scout-17b-16e-instruct"
+        "qwen/qwen3-32b",
+        "openai/gpt-oss-120b"
     ]
     ai_text = ""
     son_hata = ""
