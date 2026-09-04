@@ -3,9 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
   <title>mood4kino</title>
-  <!-- Favicon, gönderdiğin tasarıma (yuvarlak noktalı, orantılı m harfi ve tam kırmızı arka plan) göre güncellendi -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23b20710'/><text x='45%' y='48%' font-family='Helvetica, Arial, sans-serif' font-weight='bold' font-size='68' fill='white' dominant-baseline='central' text-anchor='middle'>m</text><circle cx='70' cy='73' r='7' fill='white'/></svg>">
   
   <style>
@@ -29,23 +27,20 @@
       background: var(--bg);
     }
 
-    /* --- SANATSAL BÖLÜNMÜŞ (SPLIT) VİTRİN --- */
     .hero { 
       position: relative; width: 100vw; height: 100vh; max-width: 100%; margin: 0; 
       display: flex; flex-direction: row; background: var(--bg); overflow: hidden;
     }
     
-    /* VİDEO ARTIK TAM EKRAN VE EN ALTTA YER ALIYOR */
     .hero-video { 
       position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
       object-fit: cover; pointer-events: none; z-index: 1; 
+      transition: opacity 0.5s ease-in-out;
     }
 
-    /* SOL TARAFIN BUZLU CAM EFEKTLİ VE GÖLGELİ KESKİN ARKA PLANI */
     .hero-left-wrapper {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       z-index: 2; pointer-events: none;
-      /* Kesik kenara tam oturan 3 boyutlu gölge */
       filter: drop-shadow(15px 0px 25px rgba(0, 0, 0, 0.8));
     }
     .hero-left-bg {
@@ -96,19 +91,16 @@
     input[type="search"] { width: 100%; border: 0; outline: 0; color: var(--text); font: inherit; background: transparent; padding: 12px 0; font-size: 1.05rem; }
     input::placeholder { color: #8e93a6; }
 
-    /* SAĞ TARAFIN GÖLGESİ (SİYAH ŞERİT YAPMAMASI İÇİN TAMAMEN ŞEFFAF BAŞLIYOR) */
     .hero-right {
       position: absolute; right: 0; top: 0; width: 60%; height: 100%;
       z-index: 3; pointer-events: none;
     }
     .hero-overlay {
       position: absolute; inset: 0;
-      /* Sol tarafta 0 şeffaflıkla (transparent) başlayıp sağa doğru hafifçe kararıyor */
       background: linear-gradient(to right, rgba(9, 10, 15, 0) 0%, rgba(9, 10, 15, 0.1) 40%, rgba(9, 10, 15, 0.5) 100%);
       pointer-events: none;
     }
 
-    /* --- AKILLI YÜZEN MENÜ --- */
     .floating-menu {
       position: fixed; z-index: 9990; display: flex;
       transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
@@ -267,9 +259,8 @@
   </div>
 
   <section class="hero" id="hero-section">
-    <video id="hero-video" class="hero-video" muted playsinline></video>
+    <video id="hero-video" class="hero-video" muted playsinline autoplay></video>
     
-    <!-- SOL TARAFIN BUZLU CAM EFEKTLİ VE GÖLGELİ KESKİN ARKA PLANI -->
     <div class="hero-left-wrapper">
       <div class="hero-left-bg"></div>
     </div>
@@ -400,29 +391,28 @@
         }
       });
 
-      const timestamps = [0, 3, 147, 295, 440, 580, 735, 832, 978, 1025, 1191, 1334, 1479, 1607, 1743, 1823, 1982, 2126, 2272, 2394, 2508, 2678, 2791, 2928, 3064, 3152, 3259, 3368, 3447, 3503, 3552, 3613, 3720, 3864, 3984, 4147];
+      // --- KISA VİDEOLAR DÖNGÜSÜ (a, b, c, d, e) ---
+      const videoList = ['a.mp4', 'b.mp4', 'c.mp4', 'd.mp4', 'e.mp4'];
+      let currentVideoIndex = Math.floor(Math.random() * videoList.length);
       const heroVideo = document.getElementById('hero-video');
       
       heroVideo.muted = true;
       heroVideo.playsInline = true;
-      heroVideo.src = "/static/derleme.mp4";
-      
-      let segmentTimer;
-      function playRandomSegment() {
-        const randomIndex = Math.floor(Math.random() * timestamps.length);
-        heroVideo.currentTime = timestamps[randomIndex] + 7;
-        
+
+      function playNextVideo() {
+        heroVideo.src = `/static/${videoList[currentVideoIndex]}`;
         const playPromise = heroVideo.play();
-        if (playPromise !== undefined) { playPromise.catch(err => console.log("Otomatik oynatma bekletiliyor:", err)); }
-        
-        clearTimeout(segmentTimer);
-        segmentTimer = setTimeout(() => {
-          playRandomSegment();
-        }, 8000); 
+        if (playPromise !== undefined) {
+          playPromise.catch(err => console.log("Otomatik oynatma bekletiliyor:", err));
+        }
+        currentVideoIndex = (currentVideoIndex + 1) % videoList.length;
       }
 
-      if (heroVideo.readyState >= 1) { playRandomSegment(); } 
-      else { heroVideo.addEventListener('loadedmetadata', playRandomSegment); }
+      // Video bittiği an hemen bir sonrakine geçer
+      heroVideo.addEventListener('ended', playNextVideo);
+      
+      // İlk videoyu başlat
+      playNextVideo();
 
       function getWatchlist() { return JSON.parse(localStorage.getItem('mood4kino_watchlist') || '[]'); }
       function saveWatchlist(list) { localStorage.setItem('mood4kino_watchlist', JSON.stringify(list)); }
