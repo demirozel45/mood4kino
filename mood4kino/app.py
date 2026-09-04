@@ -154,9 +154,8 @@ def ai_ara():
     prompt = request.args.get("prompt", "").strip()
     if not prompt: return jsonify({"results": []})
     
-    # Yeni hesaplarda kesinlikle çalışan model
     model_list = [
-        "llama-3.1-8b-instant"
+        "meta-llama/llama-4-scout-17b-16e-instruct"
     ]
     ai_text = ""
     son_hata = ""
