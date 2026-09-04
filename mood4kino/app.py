@@ -4,26 +4,25 @@ import requests
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", static_url_path="/static")
 CORS(app)
 
-# API Anahtarları: Önce Render environment variable'larına bakar, 
-# bulamazsa verdiğin anahtarları doğrudan yedek olarak kullanır.
 TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "95122df100f8d10457c8e200131f3ee5")
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
 
 @app.route("/")
 def anasayfa():
     return send_from_directory(".", "index.html")
 
 def ingilizceyi_turkceye_cevir(metin):
-    if not metin: return ""
+    if not metin:
+        return ""
     try:
         res = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
             json={
-                "model": "llama-3.3-70b-versatile",
+                "model": "qwen/qwen3-32b",
                 "messages": [
                     {"role": "system", "content": "You are a professional movie translator. Translate the given text into fluent Turkish. ONLY output the translated Turkish text, no introductory words. If it is already Turkish, output it as is."},
                     {"role": "user", "content": metin},
@@ -34,7 +33,8 @@ def ingilizceyi_turkceye_cevir(metin):
         )
         if res.ok:
             cevap = res.json()["choices"][0]["message"]["content"].strip()
-            if cevap: return cevap
+            if cevap:
+                return cevap
     except Exception:
         pass
 
@@ -71,12 +71,18 @@ def test_ara():
     min_rating = request.args.get("min_rating", "7.0")
     url = "https://api.themoviedb.org/3/discover/movie"
     params = {
-        "api_key": TMDB_API_KEY, "language": "tr-TR", "sort_by": "popularity.desc",
-        "vote_count.gte": 100, "vote_average.gte": min_rating,
+        "api_key": TMDB_API_KEY,
+        "language": "tr-TR",
+        "sort_by": "popularity.desc",
+        "vote_count.gte": 100,
+        "vote_average.gte": min_rating,
     }
-    if genres: params["with_genres"] = genres
-    if year_start: params["primary_release_date.gte"] = f"{year_start}-01-01"
-    if year_end: params["primary_release_date.lte"] = f"{year_end}-12-31"
+    if genres:
+        params["with_genres"] = genres
+    if year_start:
+        params["primary_release_date.gte"] = f"{year_start}-01-01"
+    if year_end:
+        params["primary_release_date.lte"] = f"{year_end}-12-31"
     try:
         res = requests.get(url, params=params, timeout=10)
         return jsonify(res.json())
@@ -114,15 +120,16 @@ def film_detay(film_id):
         original_lang = film_verisi.get("original_language", "")
         title_tr = film_verisi.get("title", "")
         title_original = film_verisi.get("original_title", "")
-        
+
         if original_lang not in ["tr", "en"] and title_tr == title_original:
             en_title = film_en.get("title")
-            if en_title: film_verisi["title"] = en_title
+            if en_title:
+                film_verisi["title"] = en_title
 
         overview_tr = film_verisi.get("overview", "").strip()
         overview_en = film_en.get("overview", "").strip()
         ingilizce_belirtiler = [" the ", " and ", " is ", " to ", " of ", " a ", " in ", " for "]
-        
+
         if not overview_tr or any(word in f" {overview_tr.lower()} " for word in ingilizce_belirtiler):
             metin_cevirilecek = overview_en if overview_en else overview_tr
             if metin_cevirilecek:
@@ -152,15 +159,16 @@ def film_detay(film_id):
 @app.route("/ai-ara")
 def ai_ara():
     prompt = request.args.get("prompt", "").strip()
-    if not prompt: return jsonify({"results": []})
-    
+    if not prompt:
+        return jsonify({"results": []})
+
     model_list = [
         "qwen/qwen3-32b",
         "openai/gpt-oss-120b"
     ]
     ai_text = ""
     son_hata = ""
-    
+
     for model_adi in model_list:
         try:
             ai_response = requests.post(
@@ -176,7 +184,7 @@ def ai_ara():
                 },
                 timeout=10,
             )
-            
+
             if ai_response.ok:
                 ai_text = ai_response.json()["choices"][0]["message"]["content"]
                 break
@@ -201,8 +209,13 @@ def ai_ara():
             )
             if res.ok:
                 data = res.json().get("results", [])
-                if data: sonuclar.append(data[0])
+                if data:
+                    sonuclar.append(data[0])
         except Exception:
             continue
-            
+
     return jsonify({"results": sonuclar})
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
