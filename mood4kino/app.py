@@ -154,10 +154,9 @@ def ai_ara():
     prompt = request.args.get("prompt", "").strip()
     if not prompt: return jsonify({"results": []})
     
-    # Güncel ve en kararlı Groq modelleri
+    # Yeni hesaplarda kesinlikle çalışan model
     model_list = [
-        "llama-3.1-8b-instant",
-        "llama-3.3-70b-versatile"
+        "llama-3.1-8b-instant"
     ]
     ai_text = ""
     son_hata = ""
@@ -187,7 +186,6 @@ def ai_ara():
             son_hata = str(e)
             continue
 
-    # Eğer hala ai_text gelmediyse, hatayı görebilelim diye ekrana basalım
     if not ai_text:
         return jsonify({"hata": f"Groq API Yanıt Vermedi. Detay: {son_hata}"}), 500
 
