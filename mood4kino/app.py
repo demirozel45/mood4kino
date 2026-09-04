@@ -154,13 +154,13 @@ def ai_ara():
     prompt = request.args.get("prompt", "").strip()
     if not prompt: return jsonify({"results": []})
     
-    # En güncel ve sağlam Groq modelleri sırayla deneniyor
+    # Güncel ve en kararlı Groq modelleri
     model_list = [
-        "llama-3.3-70b-versatile", 
-        "llama-3.1-8b-instant", 
-        "meta-llama/llama-4-scout-17b-16e-instruct"
+        "llama-3.1-8b-instant",
+        "llama-3.3-70b-versatile"
     ]
     ai_text = ""
+    son_hata = ""
     
     for model_adi in model_list:
         try:
@@ -175,28 +175,23 @@ def ai_ara():
                     ],
                     "temperature": 0.5,
                 },
-                timeout=5,
+                timeout=10,
             )
+            
             if ai_response.ok:
                 ai_text = ai_response.json()["choices"][0]["message"]["content"]
                 break
-        except Exception:
+            else:
+                son_hata = ai_response.text
+        except Exception as e:
+            son_hata = str(e)
             continue
 
+    # Eğer hala ai_text gelmediyse, hatayı görebilelim diye ekrana basalım
     if not ai_text:
-        prompt_kucuk = prompt.lower()
-        if "yağmur" in prompt_kucuk or "sakin" in prompt_kucuk or "yol" in prompt_kucuk:
-            film_isimleri = ["Captain Fantastic", "Into the Wild", "Nomadland", "Lost in Translation", "Green Book", "The Secret Life of Walter Mitty", "Paterson", "Her"]
-        elif "korku" in prompt_kucuk or "gerilim" in prompt_kucuk or "karanlık" in prompt_kucuk:
-            film_isimleri = ["Hereditary", "Get Out", "The Conjuring", "A Quiet Place", "It Follows", "Midsommar", "The Babadook", "Split"]
-        elif "aşk" in prompt_kucuk or "romantik" in prompt_kucuk or "sevgili" in prompt_kucuk:
-            film_isimleri = ["La La Land", "About Time", "Eternal Sunshine of the Spotless Mind", "Before Sunrise", "500 Days of Summer", "The Notebook", "Pride & Prejudice", "Notting Hill"]
-        elif "aksiyon" in prompt_kucuk or "heyecan" in prompt_kucuk or "hızlı" in prompt_kucuk:
-            film_isimleri = ["Mad Max: Fury Road", "John Wick", "The Dark Knight", "Die Hard", "Gladiator", "The Matrix", "Inception", "Mission: Impossible"]
-        else:
-            film_isimleri = ["Interstellar", "Dune", "Blade Runner 2049", "The Shawshank Redemption", "Forrest Gump", "Pulp Fiction", "Fight Club", "The Godfather"]
-    else:
-        film_isimleri = [f.strip().lstrip("-•0123456789. ") for f in ai_text.splitlines() if f.strip()]
+        return jsonify({"hata": f"Groq API Yanıt Vermedi. Detay: {son_hata}"}), 500
+
+    film_isimleri = [f.strip().lstrip("-•0123456789. ") for f in ai_text.splitlines() if f.strip()]
 
     sonuclar = []
     for isim in film_isimleri[:8]:
@@ -213,7 +208,3 @@ def ai_ara():
             continue
             
     return jsonify({"results": sonuclar})
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
