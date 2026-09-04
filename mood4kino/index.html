@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
   <title>mood4kino</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23b20710'/><text x='45%' y='48%' font-family='Helvetica, Arial, sans-serif' font-weight='bold' font-size='68' fill='white' dominant-baseline='central' text-anchor='middle'>m</text><circle cx='70' cy='73' r='7' fill='white'/></svg>">
+  <!-- 1) Favicon: Nokta kaldırıldı, sinematik parlak kırmızı arka plan ve Helvetica Bold küçük 'm' -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23e50914'/><text x='50%' y='52%' font-family='Helvetica, Arial, sans-serif' font-weight='bold' font-size='72' fill='white' dominant-baseline='central' text-anchor='middle'>m</text></svg>">
   
   <style>
     :root {
@@ -27,6 +29,7 @@
       background: var(--bg);
     }
 
+    /* --- SANATSAL BÖLÜNMÜŞ (SPLIT) VİTRİN --- */
     .hero { 
       position: relative; width: 100vw; height: 100vh; max-width: 100%; margin: 0; 
       display: flex; flex-direction: row; background: var(--bg); overflow: hidden;
@@ -35,19 +38,19 @@
     .hero-video { 
       position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
       object-fit: cover; pointer-events: none; z-index: 1; 
-      transition: opacity 0.5s ease-in-out;
     }
 
+    /* 5) Orantısı korunmuş, derinleştirilmiş buzlu cam sol panel */
     .hero-left-wrapper {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       z-index: 2; pointer-events: none;
-      filter: drop-shadow(15px 0px 25px rgba(0, 0, 0, 0.8));
+      filter: drop-shadow(15px 0px 30px rgba(0, 0, 0, 0.9));
     }
     .hero-left-bg {
       width: 100%; height: 100%;
-      background: rgba(9, 10, 15, 0.55);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: rgba(9, 10, 15, 0.45);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
       clip-path: polygon(0 0, 50% 0, 41% 100%, 0 100%);
     }
 
@@ -58,23 +61,23 @@
     }
     .brand-title { margin: 0; font-size: clamp(3rem, 7vw, 5.5rem); letter-spacing: -0.05em; line-height: 1; text-shadow: 0 4px 16px rgba(0,0,0,0.5); }
     
+    /* 2) Slogan biçimlendirmesi */
     .brand-slogan {
       font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-      color: #b20710; 
-      font-weight: 700; 
-      font-size: 1.15rem; 
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      margin: 8px 0 0 5px; 
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+      color: #ff333e; 
+      font-weight: 600; 
+      font-size: 1.25rem; 
+      letter-spacing: 0.04em;
+      margin: 12px 0 0 4px; 
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
     }
 
     #search-form { width: 100%; max-width: 420px; margin-left: 5px; margin-top: 36px; }
 
     .search-box {
       display: flex; align-items: center; gap: 12px; padding: 8px 10px 8px 22px;
-      border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; 
-      background: rgba(22, 24, 33, 0.6); backdrop-filter: blur(12px); box-shadow: 0 18px 42px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; 
+      background: rgba(22, 24, 33, 0.55); backdrop-filter: blur(14px); box-shadow: 0 18px 42px rgba(0, 0, 0, 0.4);
       transition: border-color 200ms ease;
     }
     .search-box:focus-within { border-color: var(--accent); }
@@ -101,40 +104,54 @@
       pointer-events: none;
     }
 
+    /* --- 4) AKILLI YÜZEN MENÜ (HER İKİ DURUMDA DA BİREBİR AYNI STİL & HOVER) --- */
     .floating-menu {
       position: fixed; z-index: 9990; display: flex;
       transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     }
+    
+    .floating-btn { 
+      border: none; 
+      font: inherit; 
+      font-weight: 600; 
+      cursor: pointer; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      gap: 10px; 
+      color: #d1d3dc;
+      background: transparent;
+      transition: all 200ms ease; 
+      white-space: nowrap;
+    }
+    .floating-btn:hover { 
+      background: var(--accent) !important; 
+      color: #fff !important; 
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(229, 9, 20, 0.5) !important;
+    }
+
     .floating-menu.hero-mode {
-      top: 30px; left: 8%; flex-direction: row; gap: 0;
-      background: rgba(22, 24, 33, 0.3); backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.05); border-radius: 40px;
-      padding: 4px;
+      top: 30px; left: 8%; flex-direction: row; gap: 4px;
+      background: rgba(22, 24, 33, 0.5); backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 40px;
+      padding: 5px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
     .floating-menu.hero-mode .floating-btn {
-      background: transparent; border: none; box-shadow: none;
-      padding: 10px 20px; color: #a4a7b5; border-radius: 36px;
-      font-size: 0.9rem; font-weight: 500;
-      transition: all 180ms ease;
-    }
-    .floating-menu.hero-mode .floating-btn:hover { 
-      background: var(--accent); 
-      color: #fff; 
-      transform: translateY(-2px);
-      box-shadow: 0 4px 14px rgba(229, 9, 20, 0.45);
+      padding: 10px 22px; border-radius: 36px; font-size: 0.92rem;
     }
 
     .floating-menu.scrolled-mode {
-      top: calc(100vh - 120px); left: calc(100vw - 220px); flex-direction: column; gap: 12px;
+      top: calc(100vh - 80px); left: auto; right: 30px; flex-direction: row; gap: 6px;
+      background: rgba(22, 24, 33, 0.75); backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 40px;
+      padding: 5px;
+      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.5);
     }
     .floating-menu.scrolled-mode .floating-btn {
-      padding: 14px 22px; border-radius: 30px; font-weight: 700; font-size: 0.95rem;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px);
+      padding: 10px 20px; border-radius: 36px; font-size: 0.9rem;
     }
-    .floating-menu.scrolled-mode .quiz-btn { background: rgba(31, 42, 68, 0.85); border: 1px solid #3b5998; color: #8cb4ff; }
-    .floating-menu.scrolled-mode .watchlist-btn { background: rgba(32, 35, 46, 0.85); border: 1px solid #363a4d; color: var(--text); }
-    .floating-menu.scrolled-mode .floating-btn:hover { transform: translateY(-4px) scale(1.03); }
-    .floating-btn { border: 1px solid transparent; font: inherit; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 180ms ease; }
 
     .scroll-down-btn {
       position: absolute; bottom: 40px; left: 8%; display: flex; align-items: center; gap: 10px;
@@ -169,14 +186,22 @@
     .modal-content::-webkit-scrollbar-thumb { background: #363a4d; border-radius: 6px; }
     @keyframes popup { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-    .modal-close { position: absolute; top: 12px; right: 14px; background: #242735; border: 0; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 1.2rem; cursor: pointer; z-index: 2; }
-    .modal-close:hover { background: var(--accent); transform: scale(1.08); }
+    /* 3) Modal buton kontrolleri: Yan yana geri ve kapat */
+    .modal-nav-buttons {
+      position: absolute; top: 14px; right: 14px; display: flex; gap: 8px; z-index: 10;
+    }
+    .modal-icon-btn { 
+      background: #242735; border: 0; border-radius: 50%; width: 34px; height: 34px; 
+      display: flex; align-items: center; justify-content: center; color: var(--text); 
+      font-size: 1.1rem; cursor: pointer; transition: all 150ms ease; 
+    }
+    .modal-icon-btn:hover { background: var(--accent); transform: scale(1.08); }
 
     .modal-top { display: flex; gap: 24px; align-items: flex-start; height: 330px; }
     .modal-poster { width: 220px; height: 330px; object-fit: cover; border-radius: 12px; flex-shrink: 0; box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
     
     .modal-info { flex: 1; display: flex; flex-direction: column; text-align: left; min-width: 0; height: 100%; }
-    .modal-info h3 { margin: 0 0 10px; font-size: 1.55rem; line-height: 1.2; }
+    .modal-info h3 { margin: 0 0 10px; font-size: 1.55rem; line-height: 1.2; padding-right: 70px; }
     .modal-tags { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 8px; margin-bottom: 12px; font-size: 0.85rem; }
     .modal-tags span { background: #232635; padding: 5px 10px; border-radius: 8px; color: #d1d3dc; }
     .modal-tags .rating { color: var(--gold); font-weight: bold; background: #2f2a1a; }
@@ -254,13 +279,14 @@
 <body>
 
   <div class="floating-menu hero-mode" id="smart-menu">
-    <button id="open-quiz-btn" class="floating-btn quiz-btn" type="button">Test ile Ara</button>
-    <button id="open-watchlist-btn" class="floating-btn watchlist-btn" type="button">İzleme Listesi</button>
+    <button id="open-quiz-btn" class="floating-btn" type="button">Test ile Ara</button>
+    <button id="open-watchlist-btn" class="floating-btn" type="button">İzleme Listesi</button>
   </div>
 
   <section class="hero" id="hero-section">
-    <video id="hero-video" class="hero-video" muted playsinline autoplay></video>
+    <video id="hero-video" class="hero-video" muted playsinline></video>
     
+    <!-- 5) Orantıları birebir korunan buzlu cam sol panel arka planı -->
     <div class="hero-left-wrapper">
       <div class="hero-left-bg"></div>
     </div>
@@ -271,7 +297,8 @@
 
     <div class="hero-left">
       <h1 class="brand-title">mood4kino</h1>
-      <div class="brand-slogan">DOĞRU FİLM. TAM ZAMANI.</div>
+      <!-- 2) Yeni slogan formatı -->
+      <div class="brand-slogan">Doğru film, tam zamanı!</div>
       <form id="search-form">
         <div class="search-box">
           <button type="submit" class="search-icon">⌕</button>
@@ -303,11 +330,24 @@
     </section>
   </main>
 
-  <div id="dynamic-modals-container"></div>
+  <!-- Tek ve akıllı modal penceresi (Geri gitme geçmişi destekli) -->
+  <div id="movie-detail-modal" class="modal-overlay hidden-modal">
+    <div class="modal-content">
+      <div class="modal-nav-buttons">
+        <button id="modal-back-btn" class="modal-icon-btn hidden-modal" type="button" title="Geri Dön">←</button>
+        <button id="modal-close-btn" class="modal-icon-btn" type="button" title="Kapat">&times;</button>
+      </div>
+      <div id="modal-body-content">
+        <p style="color:var(--muted); text-align:center; width:100%; padding: 40px 0;">Detaylar yükleniyor...</p>
+      </div>
+    </div>
+  </div>
 
   <div id="watchlist-modal" class="modal-overlay hidden-modal">
     <div class="modal-content">
-      <button id="watchlist-close-btn" class="modal-close" type="button">&times;</button>
+      <div class="modal-nav-buttons">
+        <button id="watchlist-close-btn" class="modal-icon-btn" type="button">&times;</button>
+      </div>
       <h3 style="margin: 0 0 4px; font-size: 1.4rem;">İzleme Listem</h3>
       <p style="color: var(--muted); font-size: 0.85rem; margin: 0;">Kaydettiğin filmler burada saklanır.</p>
       <div class="drawer-list" id="watchlist-items-container"></div>
@@ -316,7 +356,9 @@
 
   <div id="quiz-modal" class="modal-overlay hidden-modal">
     <div class="modal-content" style="max-width: 500px;">
-      <button id="quiz-close-btn" class="modal-close" type="button">&times;</button>
+      <div class="modal-nav-buttons">
+        <button id="quiz-close-btn" class="modal-icon-btn" type="button">&times;</button>
+      </div>
       <div class="quiz-step active" id="quiz-step-1">
         <h3 class="quiz-title">1. Adım: Hangi türleri izlemek istersin?</h3>
         <p class="quiz-desc">Birden fazla tür seçebilirsin.</p>
@@ -364,7 +406,6 @@
       const movieCount = document.querySelector('#movie-count');
       const searchForm = document.querySelector('#search-form');
       const searchInput = document.querySelector('#search-input');
-      const dynamicModalsContainer = document.querySelector('#dynamic-modals-container');
 
       const watchlistModal = document.querySelector('#watchlist-modal');
       const watchlistCloseBtn = document.querySelector('#watchlist-close-btn');
@@ -380,6 +421,14 @@
       const ratingRange = document.querySelector('#rating-range');
       const ratingVal = document.querySelector('#rating-val');
 
+      // Film Detay Modalı ve Geçmiş Yönetimi
+      const movieDetailModal = document.querySelector('#movie-detail-modal');
+      const modalBodyContent = document.querySelector('#modal-body-content');
+      const modalCloseBtn = document.querySelector('#modal-close-btn');
+      const modalBackBtn = document.querySelector('#modal-back-btn');
+      let movieHistoryStack = [];
+
+      // Akıllı Menü Sınıf Değişimi
       const smartMenu = document.getElementById('smart-menu');
       window.addEventListener('scroll', () => {
         if (window.scrollY > window.innerHeight * 0.3) {
@@ -391,28 +440,29 @@
         }
       });
 
-      // --- KISA VİDEOLAR DÖNGÜSÜ (a, b, c, d, e) ---
-      const videoList = ['a.mp4', 'b.mp4', 'c.mp4', 'd.mp4', 'e.mp4'];
-      let currentVideoIndex = Math.floor(Math.random() * videoList.length);
+      const timestamps = [0, 3, 147, 295, 440, 580, 735, 832, 978, 1025, 1191, 1334, 1479, 1607, 1743, 1823, 1982, 2126, 2272, 2394, 2508, 2678, 2791, 2928, 3064, 3152, 3259, 3368, 3447, 3503, 3552, 3613, 3720, 3864, 3984, 4147];
       const heroVideo = document.getElementById('hero-video');
       
       heroVideo.muted = true;
       heroVideo.playsInline = true;
-
-      function playNextVideo() {
-        heroVideo.src = `/static/${videoList[currentVideoIndex]}`;
+      heroVideo.src = "/static/derleme.mp4";
+      
+      let segmentTimer;
+      function playRandomSegment() {
+        const randomIndex = Math.floor(Math.random() * timestamps.length);
+        heroVideo.currentTime = timestamps[randomIndex] + 7;
+        
         const playPromise = heroVideo.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(err => console.log("Otomatik oynatma bekletiliyor:", err));
-        }
-        currentVideoIndex = (currentVideoIndex + 1) % videoList.length;
+        if (playPromise !== undefined) { playPromise.catch(err => console.log("Otomatik oynatma bekletiliyor:", err)); }
+        
+        clearTimeout(segmentTimer);
+        segmentTimer = setTimeout(() => {
+          playRandomSegment();
+        }, 8000); 
       }
 
-      // Video bittiği an hemen bir sonrakine geçer
-      heroVideo.addEventListener('ended', playNextVideo);
-      
-      // İlk videoyu başlat
-      playNextVideo();
+      if (heroVideo.readyState >= 1) { playRandomSegment(); } 
+      else { heroVideo.addEventListener('loadedmetadata', playRandomSegment); }
 
       function getWatchlist() { return JSON.parse(localStorage.getItem('mood4kino_watchlist') || '[]'); }
       function saveWatchlist(list) { localStorage.setItem('mood4kino_watchlist', JSON.stringify(list)); }
@@ -437,36 +487,29 @@
         const year = document.createElement('span'); year.textContent = movie.release_date ? movie.release_date.slice(0, 4) : 'Tarih Yok'; meta.append(year);
         if (movie.vote_average) { const score = document.createElement('span'); score.className = 'movie-score'; score.textContent = `★ ${movie.vote_average.toFixed(1)}`; meta.append(score); }
         info.append(meta); card.append(info);
-        card.addEventListener('click', () => showMovieDetails(movie.id));
+        card.addEventListener('click', () => {
+          movieHistoryStack = []; // Yeni bir film kartına tıklandığında geçmişi sıfırla
+          showMovieDetails(movie.id);
+        });
         return card;
       }
 
-      let baseZIndex = 99999;
-      
-      window.showMovieDetails = async function(movieId) {
-        baseZIndex++; 
+      // 3) Film Detaylarını Yükleme & Geri Oku Yönetimi
+      async function showMovieDetails(movieId, isBackNav = false) {
+        movieDetailModal.classList.remove('hidden-modal');
         
-        const modalId = `film-modal-${movieId}-${Date.now()}`;
-        const newModal = document.createElement('div');
-        newModal.className = 'modal-overlay';
-        newModal.style.zIndex = baseZIndex;
-        newModal.id = modalId;
-        
-        newModal.innerHTML = `
-          <div class="modal-content">
-            <button class="modal-close" type="button" onclick="document.getElementById('${modalId}').remove()">&times;</button>
-            <div class="modal-body">
-              <p style="color:var(--muted); text-align:center; width:100%; padding: 40px 0;">Detaylar yükleniyor...</p>
-            </div>
-          </div>
-        `;
-        
-        newModal.addEventListener('click', (e) => {
-          if (e.target === newModal) { newModal.remove(); }
-        });
+        if (!isBackNav) {
+          movieHistoryStack.push(movieId);
+        }
 
-        dynamicModalsContainer.appendChild(newModal);
-        const modalBody = newModal.querySelector('.modal-body');
+        // Eğer geriye gidecek film varsa geri butonunu göster
+        if (movieHistoryStack.length > 1) {
+          modalBackBtn.classList.remove('hidden-modal');
+        } else {
+          modalBackBtn.classList.add('hidden-modal');
+        }
+
+        modalBodyContent.innerHTML = `<p style="color:var(--muted); text-align:center; width:100%; padding: 40px 0;">Detaylar yükleniyor...</p>`;
 
         try {
           const res = await fetch(`${API_BASE}/film/${movieId}`);
@@ -490,7 +533,7 @@
             platformHtml = `<div class="platform-inline">${activeProviders.slice(0,3).map(p => `<img src="${p.logo}" alt="${p.name}" title="${p.name}">`).join('')}</div>`;
           }
 
-          modalBody.innerHTML = `
+          modalBodyContent.innerHTML = `
             <div class="modal-top">
               ${posterSrc ? `<img class="modal-poster" src="${posterSrc}" alt="${film.title}">` : ''}
               <div class="modal-info">
@@ -506,25 +549,25 @@
                 
                 <div class="modal-actions">
                   ${trailerKey ? `<a href="https://www.youtube.com/watch?v=${trailerKey}" target="_blank" rel="noopener noreferrer" class="trailer-btn">▶ Fragmanı İzle</a>` : `<button class="trailer-btn disabled-btn" disabled>🚫 Fragman Mevcut Değil</button>`}
-                  <button id="modal-watchlist-btn-${modalId}" class="toggle-watchlist-btn ${inList ? 'btn-remove' : 'btn-add'}" type="button">${inList ? '✕ Listeden Çıkar' : '＋ İzleme Listesi'}</button>
+                  <button id="modal-watchlist-btn" class="toggle-watchlist-btn ${inList ? 'btn-remove' : 'btn-add'}" type="button">${inList ? '✕ Listeden Çıkar' : '＋ İzleme Listesi'}</button>
                 </div>
               </div>
             </div>
             
             <div class="similar-section">
               <div class="similar-title">✦ Buna Benzer Filmler</div>
-              <div id="similar-list-${modalId}" class="similar-grid"><p style="color: var(--muted); font-size: 0.8rem; grid-column: 1/-1;">Benzer filmler aranıyor...</p></div>
+              <div id="similar-list-container" class="similar-grid"><p style="color: var(--muted); font-size: 0.8rem; grid-column: 1/-1;">Benzer filmler aranıyor...</p></div>
             </div>
           `;
 
-          const btn = newModal.querySelector(`#modal-watchlist-btn-${modalId}`);
+          const btn = document.querySelector('#modal-watchlist-btn');
           btn.addEventListener('click', () => {
             const added = toggleWatchlistMovie(film);
             btn.className = added ? 'toggle-watchlist-btn btn-remove' : 'toggle-watchlist-btn btn-add';
             btn.textContent = added ? '✕ Listeden Çıkar' : '＋ İzleme Listesi';
           });
 
-          const similarContainer = newModal.querySelector(`#similar-list-${modalId}`);
+          const similarContainer = document.querySelector('#similar-list-container');
           fetch(`${API_BASE}/film/${movieId}/benzerler`)
             .then(res => { if (!res.ok) throw new Error('Benzer filmler çekilemedi'); return res.json(); })
             .then(data => {
@@ -532,15 +575,34 @@
               if (similar.length === 0) { similarContainer.innerHTML = '<p style="color: var(--muted); font-size: 0.8rem; grid-column: 1/-1;">Benzer film bulunamadı.</p>'; return; }
               
               similarContainer.innerHTML = similar.map(s => `
-                <div class="similar-item" onclick="showMovieDetails(${s.id})">
+                <div class="similar-item" onclick="window.loadSimilarMovie(${s.id})">
                   <img src="${IMAGE_BASE_URL}${s.poster_path}" alt="${s.title || s.original_title}">
                   <span>${s.title || s.original_title}</span>
                 </div>
               `).join('');
             })
             .catch(() => { similarContainer.innerHTML = '<p style="color: var(--muted); font-size: 0.8rem; grid-column: 1/-1;">Benzer filmler yüklenemedi.</p>'; });
-        } catch (err) { modalBody.innerHTML = '<p style="color:#ff6b6b; text-align:center; width:100%;">Film detayları yüklenirken hata oluştu.</p>'; }
+        } catch (err) { modalBodyContent.innerHTML = '<p style="color:#ff6b6b; text-align:center; width:100%;">Film detayları yüklenirken hata oluştu.</p>'; }
+      }
+
+      window.loadSimilarMovie = (similarId) => {
+        showMovieDetails(similarId);
       };
+
+      // 3) Geri Butonu Tıklaması
+      modalBackBtn.addEventListener('click', () => {
+        if (movieHistoryStack.length > 1) {
+          movieHistoryStack.pop(); // Şu anki filmi çıkar
+          const previousMovieId = movieHistoryStack[movieHistoryStack.length - 1];
+          showMovieDetails(previousMovieId, true);
+        }
+      });
+
+      // 3) Sadece butona basınca kapat (boşluğa tıklayınca kapanma kaldırıldı)
+      modalCloseBtn.addEventListener('click', () => {
+        movieDetailModal.classList.add('hidden-modal');
+        movieHistoryStack = [];
+      });
 
       function renderWatchlistDrawer() {
         const list = getWatchlist();
@@ -557,8 +619,16 @@
         `).join('');
       }
 
-      window.openDetailFromDrawer = (id) => { watchlistModal.classList.add('hidden-modal'); showMovieDetails(id); };
-      window.removeFromDrawer = (id) => { saveWatchlist(getWatchlist().filter(m => m.id !== id)); renderWatchlistDrawer(); };
+      window.openDetailFromDrawer = (id) => { 
+        watchlistModal.classList.add('hidden-modal'); 
+        movieHistoryStack = [];
+        showMovieDetails(id); 
+      };
+      
+      window.removeFromDrawer = (id) => { 
+        saveWatchlist(getWatchlist().filter(m => m.id !== id)); 
+        renderWatchlistDrawer(); 
+      };
 
       openQuizBtn.addEventListener('click', () => { quizModal.classList.remove('hidden-modal'); goToStep(1); });
       function goToStep(num) { step1.classList.toggle('active', num === 1); step2.classList.toggle('active', num === 2); step3.classList.toggle('active', num === 3); }
@@ -596,8 +666,12 @@
         } catch (e) { movieGrid.innerHTML = '<p class="movie-status">Filtreleme yapılamadı. Sunucu bağlantısını kontrol edin.</p>'; }
       });
 
+      // Modalları kapatma (Sadece butonlarla)
       [watchlistCloseBtn, quizCloseBtn].forEach(btn => {
-        btn.addEventListener('click', () => { watchlistModal.classList.add('hidden-modal'); quizModal.classList.add('hidden-modal'); });
+        btn.addEventListener('click', () => { 
+          watchlistModal.classList.add('hidden-modal'); 
+          quizModal.classList.add('hidden-modal'); 
+        });
       });
 
       openWatchlistBtn.addEventListener('click', () => { renderWatchlistDrawer(); watchlistModal.classList.remove('hidden-modal'); });
@@ -617,20 +691,16 @@
 
       async function searchMoviesWithAI(prompt) {
         document.querySelector('.discover').scrollIntoView({behavior: 'smooth'});
-        
         movieGrid.innerHTML = '<p class="movie-status">Yapay Zeka öneri hazırlıyor, lütfen bekleyin...</p>';
         try {
           const response = await fetch(`${API_BASE}/ai-ara?prompt=${encodeURIComponent(prompt)}`);
-          
           if (!response.ok) {
               const errData = await response.json().catch(() => ({}));
               throw new Error(errData.hata || "Yapay Zeka API hatası");
           }
-          
           const data = await response.json();
           const movies = data.results || [];
           if (movies.length === 0) { movieGrid.innerHTML = '<p class="movie-status">Öneri bulunamadı.</p>'; return; }
-          
           movieGrid.replaceChildren(...movies.map(createMovieCard));
           movieCount.textContent = `${movies.length} yapay zeka önerisi`;
         } catch (error) { 
