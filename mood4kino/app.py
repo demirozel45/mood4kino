@@ -8,7 +8,7 @@ app = Flask(__name__)
 CORS(app)
 
 TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "95122df100f8d10457c8e200131f3ee5")
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
 
 @app.route("/")
 def anasayfa():
