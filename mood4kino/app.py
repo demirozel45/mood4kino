@@ -167,11 +167,10 @@ def ai_ara():
     if not prompt:
         return jsonify({"results": []})
     
-    # Kullanıcının tablosundan alınan güncel, desteklenen modeller
+    # Sadece kesin erişimin olan ve asla üzmeyen iki temel model
     model_list = [
         "llama-3.3-70b-versatile",
-        "llama-3.1-8b-instant",
-        "meta-llama/llama-4-scout-17b-16e-instruct"
+        "llama-3.1-8b-instant"
     ]
     
     ai_text = ""
@@ -202,7 +201,7 @@ def ai_ara():
             continue
 
     if not ai_text:
-        return jsonify({"hata": f"Groq AI Yanıt Vermiyor. Tüm güncel modeller denendi. Detay: {hata_mesaji}"}), 500
+        return jsonify({"hata": f"Groq AI Yanıt Vermiyor (Kota dolmuş olabilir). Lütfen 1 dakika bekleyip tekrar deneyin. Detay: {hata_mesaji}"}), 500
 
     film_isimleri = [f.strip().lstrip("-•0123456789. ") for f in ai_text.splitlines() if f.strip()]
 
