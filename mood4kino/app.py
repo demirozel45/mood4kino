@@ -18,13 +18,12 @@ def ingilizceyi_turkceye_cevir(metin):
     if not metin:
         return ""
     
-    # 1. YÖNTEM: GROQ AI İLE ÇEVİRİ
     try:
         res = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
             json={
-                "model": "llama3-8b-8192", # Daha hızlı ve stabil model
+                "model": "llama-3.1-8b-instant",
                 "messages": [
                     {"role": "system", "content": "You are a professional movie translator. Translate the given text into fluent Turkish. ONLY output the translated Turkish text, no introductory words. If it is already Turkish, output it as is."},
                     {"role": "user", "content": metin},
@@ -37,31 +36,26 @@ def ingilizceyi_turkceye_cevir(metin):
             cevap = res.json()["choices"][0]["message"]["content"].strip()
             if cevap:
                 return cevap
-        else:
-            print(f"Groq Çeviri Hatası: {res.text}") # Render loglarında görmek için
-    except Exception as e:
-        print(f"Groq Çeviri İstisna: {str(e)}")
+    except Exception:
+        pass
 
-    # 2. YÖNTEM: GOOGLE TRANSLATE (Yedek)
     try:
         url = "https://translate.googleapis.com/translate_a/single"
         params = {"client": "gtx", "sl": "en", "tl": "tr", "dt": "t", "q": metin}
-        # Tarayıcı gibi davranalım ki Google bizi bot sanıp engellemesin
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"} 
         res = requests.get(url, params=params, headers=headers, timeout=10)
         if res.ok:
             ceviri_parcalari = res.json()[0]
             return "".join([parca[0] for parca in ceviri_parcalari if parca[0]])
-        else:
-            print(f"Google Çeviri Hatası: {res.text}")
-    except Exception as e:
-        print(f"Google Çeviri İstisna: {str(e)}")
+    except Exception:
+        pass
         
-    return metin # İkisi de patlarsa orijinal metni döndür
+    return metin
 
 @app.route("/populer")
 def populer_filmler():
-    rastgele_sayfa = random.randint(1, 5)
+    # Çeşitliliği artırmak için 1 ile 10 arasında rastgele sayfa seçiyoruz
+    rastgele_sayfa = random.randint(1, 10)
     url = "https://api.themoviedb.org/3/trending/movie/week"
     params = {"api_key": TMDB_API_KEY, "language": "tr-TR", "page": rastgele_sayfa}
     try:
@@ -69,7 +63,13 @@ def populer_filmler():
         data = res.json()
         filmler = data.get("results", [])
         random.shuffle(filmler)
-        return jsonify({"results": filmler})
+        
+        response = jsonify({"results": filmler})
+        # TARAYICI ÖNBELLEĞİNİ KAPATIYORUZ - Ana sayfadaki filmler hep aynı gelmesin diye!
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
     except Exception as e:
         return jsonify({"hata": str(e)}), 500
 
@@ -137,7 +137,6 @@ def film_detay(film_id):
         overview_en = film_en.get("overview", "").strip()
         ingilizce_belirtiler = [" the ", " and ", " is ", " to ", " of ", " a ", " in ", " for "]
         
-        # Eğer TR özet boşsa VEYA içinde İngilizce kelimeler geçiyorsa çeviriye gönder
         if not overview_tr or any(word in f" {overview_tr.lower()} " for word in ingilizce_belirtiler):
             metin_cevirilecek = overview_en if overview_en else overview_tr
             if metin_cevirilecek:
@@ -170,9 +169,10 @@ def ai_ara():
     if not prompt:
         return jsonify({"results": []})
     
-    # En stabil modelleri en başa aldık
-    model_list = ["llama3-8b-8192", "mixtral-8x7b-32768", "llama3-70b-8192"]
+    # En güncel ve API limiti az yiyen modeller
+    model_list = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it", "mixtral-8x7b-32768"]
     ai_text = ""
+    hata_mesaji = ""
     
     for model_adi in model_list:
         try:
@@ -182,10 +182,10 @@ def ai_ara():
                 json={
                     "model": model_adi,
                     "messages": [
-                        {"role": "system", "content": "Kullanıcının tarif ettiği ruh hali, atmosfer, tempo ve temalara uygun 8 bilinen film öner. Yalnızca film adlarını, her satırda bir tane olacak şekilde yaz. Numaralandırma, açıklama veya yıl ekleme. Sadece film adı."},
+                        {"role": "system", "content": "Kullanıcının tarif ettiği konuya, ruh haline veya temaya uyan 8 bilinen film öner. SADECE orijinal film adlarını, her satırda bir tane olacak şekilde yaz. Asla numaralandırma, açıklama veya yıl ekleme."},
                         {"role": "user", "content": prompt}
                     ],
-                    "temperature": 0.5,
+                    "temperature": 0.4,
                 },
                 timeout=8,
             )
@@ -193,27 +193,16 @@ def ai_ara():
                 ai_text = ai_response.json()["choices"][0]["message"]["content"]
                 break
             else:
-                print(f"Groq AI Arama Hatası ({model_adi}): {ai_response.text}")
+                hata_mesaji = ai_response.text
         except Exception as e:
-            print(f"Groq AI Arama İstisna ({model_adi}): {str(e)}")
+            hata_mesaji = str(e)
             continue
 
-    # AI hiç yanıt vermezse yedek anahtar kelime senaryosu
+    # YEDEK LİSTELERİ KALDIRDIK. Eğer AI çalışmazsa artık hatayı göreceğiz.
     if not ai_text:
-        prompt_kucuk = prompt.lower()
-        if "yağmur" in prompt_kucuk or "sakin" in prompt_kucuk or "yol" in prompt_kucuk:
-            film_isimleri = ["Captain Fantastic", "Into the Wild", "Nomadland", "Lost in Translation", "Green Book", "The Secret Life of Walter Mitty", "Paterson", "Her"]
-        elif "korku" in prompt_kucuk or "gerilim" in prompt_kucuk or "karanlık" in prompt_kucuk:
-            film_isimleri = ["Hereditary", "Get Out", "The Conjuring", "A Quiet Place", "It Follows", "Midsommar", "The Babadook", "Split"]
-        elif "aşk" in prompt_kucuk or "romantik" in prompt_kucuk or "sevgili" in prompt_kucuk:
-            film_isimleri = ["La La Land", "About Time", "Eternal Sunshine of the Spotless Mind", "Before Sunrise", "500 Days of Summer", "The Notebook", "Pride & Prejudice", "Notting Hill"]
-        elif "aksiyon" in prompt_kucuk or "heyecan" in prompt_kucuk or "hızlı" in prompt_kucuk:
-            film_isimleri = ["Mad Max: Fury Road", "John Wick", "The Dark Knight", "Die Hard", "Gladiator", "The Matrix", "Inception", "Mission: Impossible"]
-        else:
-            film_isimleri = ["Interstellar", "Dune", "Blade Runner 2049", "The Shawshank Redemption", "Forrest Gump", "Pulp Fiction", "Fight Club", "The Godfather"]
-    else:
-        # AI'dan gelen yanıtı temizleme
-        film_isimleri = [f.strip().lstrip("-•0123456789. ") for f in ai_text.splitlines() if f.strip()]
+        return jsonify({"hata": f"Groq AI Yanıt Vermiyor (Kota dolmuş olabilir). Detay: {hata_mesaji}"}), 500
+
+    film_isimleri = [f.strip().lstrip("-•0123456789. ") for f in ai_text.splitlines() if f.strip()]
 
     sonuclar = []
     for isim in film_isimleri[:8]:
@@ -227,8 +216,7 @@ def ai_ara():
                 data = res.json().get("results", [])
                 if data:
                     sonuclar.append(data[0])
-        except Exception as e:
-            print(f"TMDB Arama Hatası ({isim}): {str(e)}")
+        except Exception:
             continue
             
     return jsonify({"results": sonuclar})
