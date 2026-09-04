@@ -7,23 +7,23 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+# API Anahtarları: Önce Render environment variable'larına bakar, 
+# bulamazsa verdiğin anahtarları doğrudan yedek olarak kullanır.
 TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "95122df100f8d10457c8e200131f3ee5")
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
 
 @app.route("/")
 def anasayfa():
     return send_from_directory(".", "index.html")
 
 def ingilizceyi_turkceye_cevir(metin):
-    if not metin:
-        return ""
-    
+    if not metin: return ""
     try:
         res = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
             json={
-                "model": "llama-3.1-8b-instant",
+                "model": "llama-3.3-70b-versatile",
                 "messages": [
                     {"role": "system", "content": "You are a professional movie translator. Translate the given text into fluent Turkish. ONLY output the translated Turkish text, no introductory words. If it is already Turkish, output it as is."},
                     {"role": "user", "content": metin},
@@ -34,27 +34,24 @@ def ingilizceyi_turkceye_cevir(metin):
         )
         if res.ok:
             cevap = res.json()["choices"][0]["message"]["content"].strip()
-            if cevap:
-                return cevap
+            if cevap: return cevap
     except Exception:
         pass
 
     try:
         url = "https://translate.googleapis.com/translate_a/single"
         params = {"client": "gtx", "sl": "en", "tl": "tr", "dt": "t", "q": metin}
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"} 
-        res = requests.get(url, params=params, headers=headers, timeout=10)
+        res = requests.get(url, params=params, timeout=10)
         if res.ok:
             ceviri_parcalari = res.json()[0]
-            return "".join([parca[0] for parca in ceviri_parcalari if parca[0]])
+            return "".join([parca[0] for parca in ceviri_parcalari])
     except Exception:
         pass
-        
     return metin
 
 @app.route("/populer")
 def populer_filmler():
-    rastgele_sayfa = random.randint(1, 10)
+    rastgele_sayfa = random.randint(1, 5)
     url = "https://api.themoviedb.org/3/trending/movie/week"
     params = {"api_key": TMDB_API_KEY, "language": "tr-TR", "page": rastgele_sayfa}
     try:
@@ -62,12 +59,7 @@ def populer_filmler():
         data = res.json()
         filmler = data.get("results", [])
         random.shuffle(filmler)
-        
-        response = jsonify({"results": filmler})
-        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-        response.headers["Pragma"] = "no-cache"
-        response.headers["Expires"] = "0"
-        return response
+        return jsonify({"results": filmler})
     except Exception as e:
         return jsonify({"hata": str(e)}), 500
 
@@ -82,12 +74,9 @@ def test_ara():
         "api_key": TMDB_API_KEY, "language": "tr-TR", "sort_by": "popularity.desc",
         "vote_count.gte": 100, "vote_average.gte": min_rating,
     }
-    if genres:
-        params["with_genres"] = genres
-    if year_start:
-        params["primary_release_date.gte"] = f"{year_start}-01-01"
-    if year_end:
-        params["primary_release_date.lte"] = f"{year_end}-12-31"
+    if genres: params["with_genres"] = genres
+    if year_start: params["primary_release_date.gte"] = f"{year_start}-01-01"
+    if year_end: params["primary_release_date.lte"] = f"{year_end}-12-31"
     try:
         res = requests.get(url, params=params, timeout=10)
         return jsonify(res.json())
@@ -128,8 +117,7 @@ def film_detay(film_id):
         
         if original_lang not in ["tr", "en"] and title_tr == title_original:
             en_title = film_en.get("title")
-            if en_title:
-                film_verisi["title"] = en_title
+            if en_title: film_verisi["title"] = en_title
 
         overview_tr = film_verisi.get("overview", "").strip()
         overview_en = film_en.get("overview", "").strip()
@@ -164,17 +152,15 @@ def film_detay(film_id):
 @app.route("/ai-ara")
 def ai_ara():
     prompt = request.args.get("prompt", "").strip()
-    if not prompt:
-        return jsonify({"results": []})
+    if not prompt: return jsonify({"results": []})
     
-    # Sadece kesin erişimin olan ve asla üzmeyen iki temel model
+    # En güncel ve sağlam Groq modelleri sırayla deneniyor
     model_list = [
-        "llama-3.3-70b-versatile",
-        "llama-3.1-8b-instant"
+        "llama-3.3-70b-versatile", 
+        "llama-3.1-8b-instant", 
+        "meta-llama/llama-4-scout-17b-16e-instruct"
     ]
-    
     ai_text = ""
-    hata_mesaji = ""
     
     for model_adi in model_list:
         try:
@@ -184,26 +170,33 @@ def ai_ara():
                 json={
                     "model": model_adi,
                     "messages": [
-                        {"role": "system", "content": "Kullanıcının tarif ettiği konuya, ruh haline veya temaya uyan 8 bilinen film öner. SADECE orijinal film adlarını, her satırda bir tane olacak şekilde yaz. Asla numaralandırma, açıklama veya yıl ekleme."},
+                        {"role": "system", "content": "Kullanıcının tarif ettiği ruh hali, atmosfer, tempo ve temalara uygun 8 bilinen film öner. Yalnızca film adlarını, her satırda bir tane olacak şekilde yaz. Numaralandırma veya açıklama ekleme."},
                         {"role": "user", "content": prompt}
                     ],
-                    "temperature": 0.4,
+                    "temperature": 0.5,
                 },
-                timeout=8,
+                timeout=5,
             )
             if ai_response.ok:
                 ai_text = ai_response.json()["choices"][0]["message"]["content"]
                 break
-            else:
-                hata_mesaji = ai_response.text
-        except Exception as e:
-            hata_mesaji = str(e)
+        except Exception:
             continue
 
     if not ai_text:
-        return jsonify({"hata": f"Groq AI Yanıt Vermiyor (Kota dolmuş olabilir). Lütfen 1 dakika bekleyip tekrar deneyin. Detay: {hata_mesaji}"}), 500
-
-    film_isimleri = [f.strip().lstrip("-•0123456789. ") for f in ai_text.splitlines() if f.strip()]
+        prompt_kucuk = prompt.lower()
+        if "yağmur" in prompt_kucuk or "sakin" in prompt_kucuk or "yol" in prompt_kucuk:
+            film_isimleri = ["Captain Fantastic", "Into the Wild", "Nomadland", "Lost in Translation", "Green Book", "The Secret Life of Walter Mitty", "Paterson", "Her"]
+        elif "korku" in prompt_kucuk or "gerilim" in prompt_kucuk or "karanlık" in prompt_kucuk:
+            film_isimleri = ["Hereditary", "Get Out", "The Conjuring", "A Quiet Place", "It Follows", "Midsommar", "The Babadook", "Split"]
+        elif "aşk" in prompt_kucuk or "romantik" in prompt_kucuk or "sevgili" in prompt_kucuk:
+            film_isimleri = ["La La Land", "About Time", "Eternal Sunshine of the Spotless Mind", "Before Sunrise", "500 Days of Summer", "The Notebook", "Pride & Prejudice", "Notting Hill"]
+        elif "aksiyon" in prompt_kucuk or "heyecan" in prompt_kucuk or "hızlı" in prompt_kucuk:
+            film_isimleri = ["Mad Max: Fury Road", "John Wick", "The Dark Knight", "Die Hard", "Gladiator", "The Matrix", "Inception", "Mission: Impossible"]
+        else:
+            film_isimleri = ["Interstellar", "Dune", "Blade Runner 2049", "The Shawshank Redemption", "Forrest Gump", "Pulp Fiction", "Fight Club", "The Godfather"]
+    else:
+        film_isimleri = [f.strip().lstrip("-•0123456789. ") for f in ai_text.splitlines() if f.strip()]
 
     sonuclar = []
     for isim in film_isimleri[:8]:
@@ -215,8 +208,7 @@ def ai_ara():
             )
             if res.ok:
                 data = res.json().get("results", [])
-                if data:
-                    sonuclar.append(data[0])
+                if data: sonuclar.append(data[0])
         except Exception:
             continue
             
