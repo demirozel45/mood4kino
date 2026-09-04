@@ -54,7 +54,6 @@ def ingilizceyi_turkceye_cevir(metin):
 
 @app.route("/populer")
 def populer_filmler():
-    # Çeşitliliği artırmak için 1 ile 10 arasında rastgele sayfa seçiyoruz
     rastgele_sayfa = random.randint(1, 10)
     url = "https://api.themoviedb.org/3/trending/movie/week"
     params = {"api_key": TMDB_API_KEY, "language": "tr-TR", "page": rastgele_sayfa}
@@ -65,7 +64,6 @@ def populer_filmler():
         random.shuffle(filmler)
         
         response = jsonify({"results": filmler})
-        # TARAYICI ÖNBELLEĞİNİ KAPATIYORUZ - Ana sayfadaki filmler hep aynı gelmesin diye!
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
@@ -169,8 +167,8 @@ def ai_ara():
     if not prompt:
         return jsonify({"results": []})
     
-    # En güncel ve API limiti az yiyen modeller
-    model_list = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it", "mixtral-8x7b-32768"]
+    # EMEKLİ OLAN "mixtral" MODELİNİ LİSTEDEN SİLDİK
+    model_list = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it"]
     ai_text = ""
     hata_mesaji = ""
     
@@ -198,7 +196,6 @@ def ai_ara():
             hata_mesaji = str(e)
             continue
 
-    # YEDEK LİSTELERİ KALDIRDIK. Eğer AI çalışmazsa artık hatayı göreceğiz.
     if not ai_text:
         return jsonify({"hata": f"Groq AI Yanıt Vermiyor (Kota dolmuş olabilir). Detay: {hata_mesaji}"}), 500
 
