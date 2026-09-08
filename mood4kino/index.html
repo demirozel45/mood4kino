@@ -146,6 +146,12 @@
     .drawer-del-btn { background: transparent; border: 0; color: #ff6b6b; font-size: 1.1rem; padding: 6px; cursor: pointer; }
 
     /* ===== FORUM PAGE ===== */
+    /* Hide floating smart menu when forum is open */
+    body:has(#forum-page.open) #smart-menu,
+    #smart-menu.forum-open {
+      display: none !important;
+    }
+
     .forum-page {
       position: fixed; inset: 0; z-index: 9000;
       background: var(--bg); transform: translateX(100%);
@@ -155,36 +161,73 @@
     .forum-page.open { transform: translateX(0); }
 
     .forum-header {
-      display: flex; align-items: center; gap: 10px;
-      padding: 13px 20px; border-bottom: 1px solid rgba(255,255,255,0.07);
-      background: var(--panel); flex-shrink: 0;
+      position: sticky; top: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center; gap: 16px;
+      padding: 12px 24px;
+      background: rgba(22, 24, 33, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      flex-shrink: 0;
+    }
+    .forum-header-left {
+      display: flex; align-items: center; gap: 10px; flex-shrink: 0;
     }
     .forum-back-btn {
       display: flex; align-items: center; justify-content: center;
-      background: transparent; border: none; color: var(--muted);
-      cursor: pointer; padding: 6px; border-radius: 8px; transition: color 0.18s; flex-shrink: 0;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+      color: var(--muted); cursor: pointer; padding: 7px; border-radius: 10px;
+      transition: all 0.18s ease; flex-shrink: 0;
     }
-    .forum-back-btn:hover { color: var(--text); }
-    .forum-title { margin: 0; font-size: 1rem; font-weight: 700; color: var(--text); flex-shrink: 0; }
+    .forum-back-btn:hover { color: var(--text); background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.18); }
+    .forum-title { margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text); flex-shrink: 0; letter-spacing: -0.01em; }
 
-    .forum-tabs { display: flex; gap: 2px; flex: 1; overflow-x: auto; }
+    .forum-tabs {
+      display: flex; align-items: center; justify-content: center; gap: 4px;
+      overflow-x: auto; scrollbar-width: none;
+      background: rgba(12, 14, 22, 0.45); border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 24px; padding: 3px 4px;
+    }
+    .forum-tabs::-webkit-scrollbar { display: none; }
     .forum-tab {
       background: transparent; border: none; color: var(--muted);
       font: inherit; font-size: 0.8rem; font-weight: 600;
-      padding: 5px 11px; border-radius: 14px; cursor: pointer;
+      padding: 5px 12px; border-radius: 18px; cursor: pointer;
       transition: all 140ms ease; white-space: nowrap; flex-shrink: 0;
     }
-    .forum-tab.active { background: var(--panel-light); color: var(--text); }
+    .forum-tab.active { background: var(--panel-light); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
     .forum-tab:hover:not(.active) { color: var(--text); }
 
+    .forum-header-right {
+      display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+    }
     .new-thread-btn {
-      display: flex; align-items: center; gap: 5px;
+      display: flex; align-items: center; gap: 6px;
       background: var(--accent); border: none; color: #fff;
       font: inherit; font-size: 0.8rem; font-weight: 700;
-      padding: 7px 13px; border-radius: 14px; cursor: pointer;
+      padding: 7px 14px; border-radius: 18px; cursor: pointer;
       transition: all 140ms ease; flex-shrink: 0; white-space: nowrap;
     }
     .new-thread-btn:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(229,9,20,0.4); }
+
+    .forum-auth-btn {
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px; padding: 6px 13px;
+      font: inherit; font-size: 0.8rem; font-weight: 600;
+      color: var(--text); cursor: pointer;
+      transition: all 160ms ease; flex-shrink: 0; white-space: nowrap;
+    }
+    .forum-auth-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.22);
+      transform: translateY(-1px);
+    }
+    .forum-auth-avatar {
+      width: 20px; height: 20px; border-radius: 50%; object-fit: cover;
+      border: 1.5px solid rgba(255, 255, 255, 0.25); flex-shrink: 0;
+    }
 
     .threads-scroll { flex: 1; overflow-y: auto; padding: 18px 20px; }
     .threads-list { display: flex; flex-direction: column; gap: 8px; max-width: 680px; margin: 0 auto; }
@@ -213,7 +256,17 @@
     }
     .film-badge img { width: 13px; height: 19px; border-radius: 2px; object-fit: cover; flex-shrink: 0; }
     .film-badge-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .spoiler-badge { margin-left: auto; font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 9px; background: rgba(229,9,20,0.12); color: #f87171; text-transform: uppercase; letter-spacing: 0.05em; }
+    .spoiler-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 9px; background: rgba(229,9,20,0.12); color: #f87171; text-transform: uppercase; letter-spacing: 0.05em; }
+    .thread-top-actions { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+    .thread-delete-btn {
+      display: flex; align-items: center; justify-content: center;
+      background: transparent; border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px; color: var(--muted); padding: 4px 6px;
+      cursor: pointer; transition: all 140ms ease; line-height: 1;
+    }
+    .thread-delete-btn:hover {
+      background: rgba(229,9,20,0.15); border-color: rgba(229,9,20,0.35); color: #f87171;
+    }
 
     .thread-content-area { position: relative; margin-bottom: 10px; }
     .thread-text { font-size: 0.88rem; line-height: 1.5; color: #c5c8d8; margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
@@ -245,7 +298,17 @@
     .td-content::-webkit-scrollbar-thumb { background: #363a4d; border-radius: 4px; }
 
     .td-top-row { display: flex; align-items: center; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
-    .td-close { margin-left: auto; background: #242735; border: 0; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; color: var(--text); cursor: pointer; transition: all 140ms ease; flex-shrink: 0; }
+    .td-top-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .td-delete-btn {
+      display: flex; align-items: center; gap: 5px;
+      background: rgba(229,9,20,0.08); border: 1px solid rgba(229,9,20,0.22);
+      border-radius: 8px; color: #f87171; font: inherit; font-size: 0.76rem; font-weight: 600;
+      padding: 5px 10px; cursor: pointer; transition: all 140ms ease;
+    }
+    .td-delete-btn:hover {
+      background: rgba(229,9,20,0.18); border-color: rgba(229,9,20,0.45); color: #fff;
+    }
+    .td-close { background: #242735; border: 0; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; color: var(--text); cursor: pointer; transition: all 140ms ease; flex-shrink: 0; }
     .td-close:hover { background: var(--accent); }
     .td-film-ref { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 8px 12px; margin-bottom: 14px; }
     .td-film-poster { width: 25px; height: 35px; border-radius: 3px; object-fit: cover; flex-shrink: 0; }
@@ -360,18 +423,143 @@
       .hero-left-wrapper { display: none; }
       .brand-slogan { margin: 10px auto 30px; }
       .movie-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .modal-top { flex-direction: column; align-items: center; height: auto; }
-      .modal-info { height: auto; }
-      .modal-overview { flex: none; overflow-y: visible; }
-      .modal-actions { grid-template-columns: 1fr; }
+      
+      /* Modals Responsive */
+      .modal-content {
+        width: 94%;
+        max-height: calc(100dvh - 24px);
+        padding: 18px 16px;
+        border-radius: 14px;
+      }
+      .modal-top { flex-direction: column; align-items: center; height: auto; gap: 14px; }
+      .modal-poster { width: 130px; height: 195px; border-radius: 10px; }
+      .modal-info { height: auto; width: 100%; text-align: center; }
+      .modal-info h3 { font-size: 1.22rem; margin: 0 0 8px; padding-right: 0; }
+      .modal-tags { justify-content: center; font-size: 0.78rem; gap: 6px; margin-bottom: 10px; }
+      .modal-tags span { padding: 4px 8px; }
+      .modal-overview { max-height: 120px; font-size: 0.86rem; line-height: 1.5; padding-right: 4px; text-align: left; }
+      .modal-actions { grid-template-columns: 1fr; gap: 8px; margin-top: 14px; padding-top: 10px; }
+      .trailer-btn, .toggle-watchlist-btn { padding: 10px 14px; font-size: 0.88rem; }
+      .similar-section { margin-top: 16px; padding-top: 12px; }
+      .similar-grid { grid-template-columns: repeat(auto-fit, minmax(75px, 1fr)); gap: 8px; }
+
+      /* Floating Menu */
       .floating-menu.hero-mode { top: 12px; left: 50%; transform: translateX(-50%); }
       .floating-menu.scrolled-mode { top: auto; bottom: 16px; left: auto; right: 16px; }
       .scroll-down-btn { display: none; }
-      .forum-header { padding: 10px 12px; }
-      .forum-tabs { display: none; }
-      .threads-scroll { padding: 12px; }
+
+      /* Forum Responsive */
+      .forum-header { padding: 8px 12px; gap: 8px; }
+      .forum-title { display: none; }
+      .forum-tabs {
+        flex: 1;
+        min-width: 0;
+        max-width: none;
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+        padding: 2px 4px;
+      }
+      .forum-tab { font-size: 0.76rem; padding: 5px 10px; flex-shrink: 0; }
+      .threads-scroll { padding: 10px; }
+      
+      .new-thread-btn {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
       .new-thread-btn .nt-btn-label { display: none; }
+      .new-thread-btn svg { width: 14px; height: 14px; }
+      
+      .forum-auth-btn {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .forum-auth-btn .forum-auth-label { display: none; }
       #auth-btn .auth-label { display: none; }
+
+      /* Thread Detail Modal Responsive */
+      .td-content {
+        width: 95%;
+        max-height: calc(100dvh - 24px);
+        padding: 16px 14px;
+        border-radius: 14px;
+      }
+      .td-body { font-size: 0.88rem; line-height: 1.55; margin: 0 0 14px; }
+      .td-actions-row { padding: 10px 0; margin-bottom: 14px; }
+      .td-author-name-el { font-size: 0.76rem; }
+      .td-time-el { font-size: 0.72rem; }
+      .td-like-btn { padding: 4px 10px; font-size: 0.76rem; }
+
+      /* New Thread Modal Responsive */
+      .nt-content {
+        width: 95%;
+        max-height: calc(100dvh - 24px);
+        padding: 16px 14px;
+        border-radius: 14px;
+      }
+      .nt-h { font-size: 1rem; }
+      .nt-field { margin-bottom: 11px; }
+      .nt-textarea { font-size: 0.84rem; min-height: 80px; padding: 9px 11px; }
+      .nt-film-input { font-size: 0.84rem; padding: 8px 10px; }
+      .nt-submit { padding: 10px; font-size: 0.86rem; }
+
+      /* Touch scrollbar cleanup */
+      .forum-tabs::-webkit-scrollbar,
+      .modal-content::-webkit-scrollbar,
+      .td-content::-webkit-scrollbar,
+      .nt-content::-webkit-scrollbar,
+      .threads-scroll::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .page { width: calc(100% - 24px); padding: 24px 0 40px; }
+      .section-heading { margin-bottom: 14px; }
+      .section-heading h2 { font-size: 1.15rem; }
+      .movie-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px;
+      }
+      .movie-card {
+        min-height: 220px;
+        border-radius: 10px;
+      }
+      .movie-info {
+        padding: 30px 10px 10px;
+      }
+      .movie-title {
+        font-size: 0.82rem;
+        line-height: 1.25;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .movie-meta {
+        font-size: 0.72rem;
+        margin-top: 4px;
+      }
+      .hero-title { font-size: 2.2rem; }
+      .search-box { width: 100%; }
+      .search-input { font-size: 0.88rem; padding: 10px 14px; }
+      .search-btn { padding: 0 16px; font-size: 0.88rem; }
     }
   </style>
 </head>
@@ -510,10 +698,12 @@
   <!-- ===== FORUM PAGE ===== -->
   <div id="forum-page" class="forum-page">
     <div class="forum-header">
-      <button class="forum-back-btn" id="forum-back-btn" title="Ana Sayfaya Dön">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-      </button>
-      <span class="forum-title">Forum</span>
+      <div class="forum-header-left">
+        <button class="forum-back-btn" id="forum-back-btn" title="Ana Sayfaya Dön" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </button>
+        <span class="forum-title">Forum</span>
+      </div>
       <div class="forum-tabs">
         <button class="forum-tab active" data-cat="all">Tümü</button>
         <button class="forum-tab" data-cat="Öneri">Öneri</button>
@@ -522,10 +712,18 @@
         <button class="forum-tab" data-cat="Soru">Soru</button>
         <button class="forum-tab" data-cat="Liste">Liste</button>
       </div>
-      <button class="new-thread-btn" id="new-thread-btn" type="button">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span class="nt-btn-label">Yeni Konu</span>
-      </button>
+      <div class="forum-header-right">
+        <button class="new-thread-btn" id="new-thread-btn" type="button">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span class="nt-btn-label">Yeni Konu</span>
+        </button>
+        <button id="forum-auth-btn" class="forum-auth-btn" type="button" title="Giriş Yap">
+          <span id="forum-auth-btn-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          </span>
+          <span id="forum-auth-btn-label" class="forum-auth-label">Giriş</span>
+        </button>
+      </div>
     </div>
     <div class="threads-scroll">
       <div class="threads-list" id="threads-list">
@@ -649,6 +847,7 @@
     const HEART_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
     const MSG_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
     const X_SVG = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+    const TRASH_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
 
     document.addEventListener("DOMContentLoaded", () => {
 
@@ -724,6 +923,9 @@
       const authBtn = document.getElementById('auth-btn');
       const authBtnIcon = document.getElementById('auth-btn-icon');
       const authBtnLabel = document.getElementById('auth-btn-label');
+      const forumAuthBtn = document.getElementById('forum-auth-btn');
+      const forumAuthBtnIcon = document.getElementById('forum-auth-btn-icon');
+      const forumAuthBtnLabel = document.getElementById('forum-auth-btn-label');
 
       auth.onAuthStateChanged(async (user) => {
         currentUser = user;
@@ -733,21 +935,38 @@
           authBtnIcon.innerHTML = user.photoURL
             ? `<img class="auth-avatar" src="${user.photoURL}" alt="${escHtml(name)}">`
             : GOOGLE_G;
+          if (forumAuthBtnLabel) forumAuthBtnLabel.textContent = name;
+          if (forumAuthBtnIcon) {
+            forumAuthBtnIcon.innerHTML = user.photoURL
+              ? `<img class="forum-auth-avatar" src="${user.photoURL}" alt="${escHtml(name)}">`
+              : GOOGLE_G;
+          }
+          if (forumAuthBtn) forumAuthBtn.title = user.displayName ? `${user.displayName} (Çıkış Yap)` : 'Çıkış Yap';
           await loadWatchlistFromFirestore();
         } else {
           authBtnLabel.textContent = 'Giriş';
           authBtnIcon.innerHTML = GOOGLE_G;
+          if (forumAuthBtnLabel) forumAuthBtnLabel.textContent = 'Giriş';
+          if (forumAuthBtnIcon) forumAuthBtnIcon.innerHTML = GOOGLE_G;
+          if (forumAuthBtn) forumAuthBtn.title = 'Giriş Yap';
+        }
+        const forumPageEl = document.getElementById('forum-page');
+        if (forumPageEl && forumPageEl.classList.contains('open')) {
+          loadThreads();
         }
       });
 
-      authBtn.addEventListener('click', async () => {
+      async function handleAuthClick() {
         if (currentUser) {
           auth.signOut();
         } else {
           try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
           catch (e) { if (e.code !== 'auth/popup-closed-by-user') console.error('Auth:', e); }
         }
-      });
+      }
+
+      authBtn.addEventListener('click', handleAuthClick);
+      if (forumAuthBtn) forumAuthBtn.addEventListener('click', handleAuthClick);
 
       // ── Watchlist (localStorage + Firestore sync) ─────────────────────────
       function getWatchlist() { return JSON.parse(localStorage.getItem('mood4kino_watchlist') || '[]'); }
@@ -831,15 +1050,15 @@
                 <h3>${escHtml(film.title || film.original_title)}</h3>
                 <div class="modal-tags">
                   <span class="rating">${rat}</span>
-                  <span>⏱ ${dur}</span>
-                  ${yr ? `<span>📅 ${yr}</span>` : ''}
+                  <span>${dur}</span>
+                  ${yr ? `<span>${yr}</span>` : ''}
                   ${platHtml}
                 </div>
                 <p style="color:var(--muted);font-size:0.85rem;margin:4px 0 8px;"><strong>Tür:</strong> ${gen}</p>
                 <p class="modal-overview">${film.overview || 'Bu film için henüz özet eklenmemiş.'}</p>
                 <div class="modal-actions">
-                  ${film.trailer_key ? `<a href="https://www.youtube.com/watch?v=${film.trailer_key}" target="_blank" rel="noopener noreferrer" class="trailer-btn">▶ Fragmanı İzle</a>` : `<button class="trailer-btn disabled-btn" disabled>Fragman Mevcut Değil</button>`}
-                  <button id="modal-watchlist-btn" class="toggle-watchlist-btn ${inList ? 'btn-remove' : 'btn-add'}" type="button">${inList ? '✕ Listeden Çıkar' : '＋ İzleme Listesi'}</button>
+                  ${film.trailer_key ? `<a href="https://www.youtube.com/watch?v=${film.trailer_key}" target="_blank" rel="noopener noreferrer" class="trailer-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg> Fragmanı İzle</a>` : `<button class="trailer-btn disabled-btn" disabled>Fragman Mevcut Değil</button>`}
+                  <button id="modal-watchlist-btn" class="toggle-watchlist-btn ${inList ? 'btn-remove' : 'btn-add'}" type="button">${inList ? 'Listeden Çıkar' : '+ İzleme Listesi'}</button>
                 </div>
               </div>
             </div>
@@ -954,8 +1173,24 @@
       const forumBackBtn = document.getElementById('forum-back-btn');
       let forumCurrentCat = 'all';
 
-      openForumBtn.addEventListener('click', () => { forumPage.classList.add('open'); loadThreads(); });
-      forumBackBtn.addEventListener('click', () => forumPage.classList.remove('open'));
+      function openForum() {
+        forumPage.classList.add('open');
+        if (smartMenu) smartMenu.classList.add('forum-open');
+        loadThreads();
+      }
+
+      function closeForum() {
+        forumPage.classList.remove('open');
+        if (smartMenu) smartMenu.classList.remove('forum-open');
+      }
+
+      openForumBtn.addEventListener('click', openForum);
+      forumBackBtn.addEventListener('click', closeForum);
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && forumPage.classList.contains('open') && tdModal.classList.contains('hidden-modal') && newThreadModal.classList.contains('hidden-modal')) {
+          closeForum();
+        }
+      });
 
       document.querySelectorAll('.forum-tab').forEach(tab => {
         tab.addEventListener('click', () => {
@@ -966,17 +1201,38 @@
         });
       });
 
+      // ── Delete thread ─────────────────────────────────────────────────────
+      async function deleteThread(threadId) {
+        if (!confirm('Bu konuyu silmek istediğinize emin misiniz?')) return;
+        try {
+          await db.collection('threads').doc(threadId).delete();
+          tdModal.classList.add('hidden-modal');
+          loadThreads();
+        } catch (e) {
+          console.error('Delete thread error:', e);
+          alert('Konu silinirken bir hata oluştu.');
+        }
+      }
+
       // ── Load threads ──────────────────────────────────────────────────────
       async function loadThreads() {
         const container = document.getElementById('threads-list');
         container.innerHTML = '<div class="forum-loading">Yükleniyor...</div>';
         try {
-          let q = db.collection('threads').orderBy('createdAt', 'desc').limit(60);
-          if (forumCurrentCat !== 'all') q = db.collection('threads').where('category','==',forumCurrentCat).orderBy('createdAt','desc').limit(60);
-          const snap = await q.get();
-          if (snap.empty) { container.innerHTML = '<div class="forum-empty">Henüz konu açılmamış.<br>İlk konuyu sen aç!</div>'; return; }
+          const snap = await db.collection('threads').orderBy('createdAt', 'desc').limit(100).get();
+          let threads = [];
+          snap.forEach(doc => threads.push({ id: doc.id, ...doc.data() }));
+
+          if (forumCurrentCat !== 'all') {
+            threads = threads.filter(t => t.category === forumCurrentCat);
+          }
+
+          if (!threads.length) {
+            container.innerHTML = '<div class="forum-empty">Henüz konu açılmamış.<br>İlk konuyu sen aç!</div>';
+            return;
+          }
           container.innerHTML = '';
-          snap.forEach(doc => container.appendChild(buildThreadCard({ id: doc.id, ...doc.data() })));
+          threads.forEach(t => container.appendChild(buildThreadCard(t)));
         } catch (e) {
           console.error('loadThreads:', e);
           container.innerHTML = '<div class="forum-error">Konular yüklenemedi.<br><small>Firebase Console\'dan Firestore ve Authentication\'ı etkinleştirmeyi unutma.</small></div>';
@@ -990,16 +1246,22 @@
         const ts = thread.createdAt?.toDate ? thread.createdAt.toDate() : null;
         const likes = thread.likedBy ? thread.likedBy.length : 0;
         const comments = thread.commentCount || 0;
+        const isOwner = !!(currentUser && thread.uid && currentUser.uid === thread.uid);
 
         const filmHtml = thread.film ? `<div class="film-badge">${thread.film.poster_path ? `<img src="${IMAGE_BASE_URL}${thread.film.poster_path}" alt="">` : ''}<span class="film-badge-title">${escHtml(thread.film.title)}</span></div>` : '';
         const spoilerHtml = thread.isSpoiler ? '<span class="spoiler-badge">Spoiler</span>' : '';
+        const deleteBtnHtml = isOwner ? `<button class="thread-delete-btn" type="button" title="Konuyu Sil">${TRASH_SVG}</button>` : '';
         const revealHtml = thread.isSpoiler ? '<div class="spoiler-reveal-overlay"><button class="spoiler-reveal-btn" type="button">Spoiler — Göster</button></div>' : '';
         const authorImg = thread.photoURL ? `<img class="thread-author-img" src="${thread.photoURL}" alt="">` : '<div class="thread-author-ph"></div>';
 
         card.innerHTML = `
           <div class="thread-top-row">
             <span class="cat-badge ${catClass(thread.category)}">${escHtml(thread.category)}</span>
-            ${filmHtml}${spoilerHtml}
+            ${filmHtml}
+            <div class="thread-top-actions">
+              ${spoilerHtml}
+              ${deleteBtnHtml}
+            </div>
           </div>
           <div class="thread-content-area ${thread.isSpoiler ? 'spoiler-blur' : ''}">
             ${revealHtml}
@@ -1014,6 +1276,16 @@
             <div class="thread-stat">${HEART_SVG}<span>${likes}</span></div>
             <div class="thread-stat">${MSG_SVG}<span>${comments}</span></div>
           </div>`;
+
+        if (isOwner) {
+          const delBtn = card.querySelector('.thread-delete-btn');
+          if (delBtn) {
+            delBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              deleteThread(thread.id);
+            });
+          }
+        }
 
         if (thread.isSpoiler) {
           const revBtn = card.querySelector('.spoiler-reveal-btn');
@@ -1033,6 +1305,7 @@
         const ts = thread.createdAt?.toDate ? thread.createdAt.toDate() : null;
         const isLiked = !!(currentUser && thread.likedBy && thread.likedBy.includes(currentUser.uid));
         const likes = thread.likedBy ? thread.likedBy.length : 0;
+        const isOwner = !!(currentUser && thread.uid && currentUser.uid === thread.uid);
 
         const filmSection = thread.film ? `
           <div class="td-film-ref">
@@ -1042,6 +1315,7 @@
         const srSection = thread.isSpoiler ? `<div class="td-sr-wrap" id="td-sr"><button class="td-sr-btn" id="td-sr-btn" type="button">Spoiler içeriği göster</button></div>` : '';
         const authorImg = thread.photoURL ? `<img class="td-author-img" src="${thread.photoURL}" alt="">` : `<div style="width:21px;height:21px;border-radius:50%;background:#363a4d;flex-shrink:0;"></div>`;
         const dateStr = ts ? ts.toLocaleDateString('tr-TR', { day:'numeric', month:'long', year:'numeric' }) : '';
+        const deleteBtnHtml = isOwner ? `<button class="td-delete-btn" id="td-delete-btn" type="button" title="Konuyu Sil">${TRASH_SVG}<span>Sil</span></button>` : '';
 
         const commentInput = currentUser
           ? `<div class="ci-section">
@@ -1054,8 +1328,11 @@
         tdBody.innerHTML = `
           <div class="td-top-row">
             <span class="cat-badge ${catClass(thread.category)}">${escHtml(thread.category)}</span>
-            ${thread.isSpoiler ? '<span class="spoiler-badge">Spoiler</span>' : ''}
-            <button class="td-close" id="td-close-btn" type="button">${X_SVG}</button>
+            <div class="td-top-actions">
+              ${thread.isSpoiler ? '<span class="spoiler-badge">Spoiler</span>' : ''}
+              ${deleteBtnHtml}
+              <button class="td-close" id="td-close-btn" type="button">${X_SVG}</button>
+            </div>
           </div>
           ${filmSection}
           ${srSection}
@@ -1075,6 +1352,13 @@
           ${commentInput}`;
 
         document.getElementById('td-close-btn').addEventListener('click', () => tdModal.classList.add('hidden-modal'));
+
+        if (isOwner) {
+          const tdDelBtn = document.getElementById('td-delete-btn');
+          if (tdDelBtn) {
+            tdDelBtn.addEventListener('click', () => deleteThread(thread.id));
+          }
+        }
 
         if (thread.isSpoiler) {
           document.getElementById('td-sr-btn').addEventListener('click', () => {
