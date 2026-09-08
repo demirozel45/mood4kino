@@ -2,7 +2,10 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#090a0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>mood4kino</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23e50914'/><text x='50%' y='52%' font-family='Helvetica, Arial, sans-serif' font-weight='bold' font-size='72' fill='white' dominant-baseline='central' text-anchor='middle'>m</text></svg>">
 
@@ -154,11 +157,6 @@
     }
     .forum-page.open { transform: translateX(0); }
 
-    .forum-header {
-      display: flex; align-items: center; gap: 10px;
-      padding: 13px 20px; border-bottom: 1px solid rgba(255,255,255,0.07);
-      background: var(--panel); flex-shrink: 0;
-    }
     .forum-back-btn {
       display: flex; align-items: center; justify-content: center;
       background: transparent; border: none; color: var(--muted);
@@ -166,16 +164,6 @@
     }
     .forum-back-btn:hover { color: var(--text); }
     .forum-title { margin: 0; font-size: 1rem; font-weight: 700; color: var(--text); flex-shrink: 0; }
-
-    .forum-tabs { display: flex; gap: 2px; flex: 1; overflow-x: auto; }
-    .forum-tab {
-      background: transparent; border: none; color: var(--muted);
-      font: inherit; font-size: 0.8rem; font-weight: 600;
-      padding: 5px 11px; border-radius: 14px; cursor: pointer;
-      transition: all 140ms ease; white-space: nowrap; flex-shrink: 0;
-    }
-    .forum-tab.active { background: var(--panel-light); color: var(--text); }
-    .forum-tab:hover:not(.active) { color: var(--text); }
 
     .new-thread-btn {
       display: flex; align-items: center; gap: 5px;
@@ -351,35 +339,552 @@
     .nt-submit:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(229,9,20,0.35); }
     .nt-submit:disabled { background: #2c3040; color: #555; cursor: not-allowed; transform: none; box-shadow: none; }
 
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 850px) {
-      .hero { flex-direction: column; justify-content: center; align-items: center; }
-      .hero-left { width: 100%; padding: 20px; text-align: center; z-index: 4; align-items: center; background: transparent; }
-      .hero-right { width: 100%; clip-path: none; opacity: 0.3; }
-      .hero-video { opacity: 0.3; }
-      .hero-left-wrapper { display: none; }
-      .brand-slogan { margin: 10px auto 30px; }
-      .movie-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .modal-top { flex-direction: column; align-items: center; height: auto; }
-      .modal-info { height: auto; }
-      .modal-overview { flex: none; overflow-y: visible; }
-      .modal-actions { grid-template-columns: 1fr; }
-      .floating-menu.hero-mode { top: 12px; left: 50%; transform: translateX(-50%); }
-      .floating-menu.scrolled-mode { top: auto; bottom: 16px; left: auto; right: 16px; }
-      .scroll-down-btn { display: none; }
-      .forum-header { padding: 10px 12px; }
-      .forum-tabs { display: none; }
-      .threads-scroll { padding: 12px; }
-      .new-thread-btn .nt-btn-label { display: none; }
-      #auth-btn .auth-label { display: none; }
+    /* ===== QUICK MOOD TAGS ===== */
+    .quick-mood-tags {
+      display: none !important; /* Masaüstünde gizli, sadece mobilde açılır */
+      gap: 8px;
+      overflow-x: auto;
+      padding: 14px 4px 4px;
+      margin-top: 2px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      width: 100%;
+      max-width: 440px;
     }
+    .quick-mood-tags::-webkit-scrollbar { display: none; }
+    .mood-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(22, 24, 33, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      color: #d1d3dc;
+      font-family: inherit;
+      font-size: 0.76rem;
+      font-weight: 500;
+      padding: 6px 12px;
+      white-space: nowrap;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: all 0.18s ease;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mood-chip:hover, .mood-chip:active {
+      background: rgba(229, 9, 20, 0.22);
+      border-color: var(--accent);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    /* ===== MOBILE BOTTOM NAVIGATION BAR ===== */
+    .mobile-nav-bar {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 9995;
+      background: rgba(14, 16, 24, 0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px));
+      justify-content: space-around;
+      align-items: center;
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .mobile-nav-item {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      background: transparent;
+      border: none;
+      color: #9b9eaa;
+      font-family: inherit;
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 5px 8px;
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color 0.18s ease, transform 0.15s ease;
+      min-width: 52px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mobile-nav-item:active {
+      transform: scale(0.92);
+    }
+    .mobile-nav-item.active, .mobile-nav-item:hover {
+      color: #ffffff;
+    }
+    .mobile-nav-item.active .mobile-nav-icon svg {
+      stroke: var(--accent);
+      filter: drop-shadow(0 0 6px rgba(229, 9, 20, 0.6));
+    }
+    .mobile-nav-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      position: relative;
+    }
+    .mobile-nav-badge {
+      position: absolute;
+      top: -4px;
+      right: -8px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.6rem;
+      font-weight: 800;
+      min-width: 15px;
+      height: 15px;
+      border-radius: 8px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+    .mobile-nav-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1.5px solid var(--accent);
+    }
+
+    /* Floating rating badge on movie card */
+    .card-badge-rating {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(12, 14, 22, 0.75);
+      border: 1px solid rgba(255, 184, 0, 0.3);
+      color: var(--gold);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 2;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      /* Floating desktop menu hidden on mobile, replaced by bottom bar */
+      .floating-menu { display: none !important; }
+      .mobile-nav-bar { display: flex !important; }
+
+      body {
+        overflow-x: hidden;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body.modal-open {
+        overflow: hidden;
+      }
+
+      /* HERO */
+      .hero {
+        min-height: 52vh;
+        min-height: 52dvh;
+        height: auto;
+        padding: 36px 16px 28px;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      .hero-video { opacity: 0.32; }
+      .hero-left-wrapper { display: none; }
+      .hero-right { width: 100%; opacity: 0.4; }
+      .hero-left {
+        width: 100%;
+        padding: 0;
+        align-items: center;
+        text-align: center;
+        z-index: 4;
+      }
+      .brand-title {
+        font-size: clamp(2.3rem, 8vw, 3.2rem);
+        margin: 0;
+      }
+      .brand-slogan {
+        font-size: 0.94rem;
+        margin: 6px 0 18px 0;
+      }
+      #search-form {
+        margin: 0 auto;
+        max-width: 100%;
+        width: 100%;
+      }
+      .search-box {
+        padding: 7px 12px 7px 16px;
+        border-radius: 14px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      }
+      input[type="search"] {
+        font-size: 0.92rem;
+        padding: 8px 0;
+      }
+      .quick-mood-tags {
+        justify-content: flex-start;
+        padding: 10px 0 2px;
+      }
+      .scroll-down-btn { display: none; }
+
+      /* MAIN PAGE */
+      .page {
+        width: calc(100% - 24px);
+        padding: 22px 0 calc(84px + env(safe-area-inset-bottom, 0px));
+      }
+      .section-heading {
+        margin-bottom: 14px;
+      }
+      .section-heading h2 {
+        font-size: 1.15rem;
+      }
+      .section-heading span {
+        font-size: 0.78rem;
+      }
+
+      /* MOVIE GRID */
+      .movie-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .movie-card {
+        min-height: unset;
+        aspect-ratio: 2/3;
+        border-radius: 10px;
+        border-color: rgba(255,255,255,0.08);
+      }
+      .movie-card:active {
+        transform: scale(0.97);
+      }
+      .movie-info {
+        padding: 28px 10px 10px;
+        background: linear-gradient(transparent, rgba(9,10,15,0.96) 65%);
+      }
+      .movie-title {
+        font-size: 0.85rem;
+        line-height: 1.22;
+        font-weight: 600;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .movie-meta {
+        margin: 4px 0 0;
+        font-size: 0.72rem;
+      }
+
+      /* MODALS - BOTTOM SHEET DESIGN */
+      .modal-overlay {
+        align-items: flex-end;
+        background: rgba(0,0,0,0.78);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        padding: 0;
+      }
+      .modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: 88vh;
+        max-height: 88dvh;
+        border-radius: 22px 22px 0 0;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        padding: 16px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+        animation: slideUpModal 220ms cubic-bezier(0.16,1,0.3,1);
+      }
+      @keyframes slideUpModal {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+      .modal-content::before {
+        content: '';
+        display: block;
+        width: 38px;
+        height: 4px;
+        background: rgba(255,255,255,0.22);
+        border-radius: 2px;
+        margin: -4px auto 14px auto;
+      }
+      .modal-nav-buttons {
+        top: 12px;
+        right: 12px;
+      }
+      .modal-icon-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+      }
+
+      /* MOVIE DETAIL MODAL INTERIORS */
+      .modal-top {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 14px;
+        height: auto;
+      }
+      .modal-poster {
+        width: 105px;
+        height: 155px;
+        border-radius: 8px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+      }
+      .modal-info {
+        height: auto;
+        min-width: 0;
+      }
+      .modal-info h3 {
+        font-size: 1.15rem;
+        margin-bottom: 6px;
+        padding-right: 48px;
+        line-height: 1.25;
+      }
+      .modal-tags {
+        font-size: 0.74rem;
+        gap: 5px;
+        margin-bottom: 6px;
+      }
+      .modal-tags span {
+        padding: 3px 7px;
+        border-radius: 6px;
+      }
+      .platform-inline img {
+        width: 18px;
+        height: 18px;
+      }
+      .modal-overview {
+        max-height: 90px;
+        overflow-y: auto;
+        font-size: 0.84rem;
+        line-height: 1.45;
+        margin-top: 6px;
+        padding-right: 4px;
+      }
+      .modal-actions {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 14px;
+        padding-top: 8px;
+      }
+      .trailer-btn, .toggle-watchlist-btn {
+        padding: 10px 8px;
+        font-size: 0.82rem;
+        border-radius: 9px;
+      }
+      .similar-section {
+        margin-top: 16px;
+        padding-top: 12px;
+      }
+      .similar-title {
+        font-size: 0.78rem;
+        margin-bottom: 10px;
+      }
+      .similar-grid {
+        display: flex;
+        overflow-x: auto;
+        gap: 8px;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      .similar-grid::-webkit-scrollbar { display: none; }
+      .similar-item {
+        width: 82px;
+        flex-shrink: 0;
+        border-radius: 6px;
+      }
+      .similar-item span {
+        font-size: 0.65rem;
+        padding: 0 4px;
+      }
+
+      /* QUIZ MODAL */
+      .quiz-title {
+        font-size: 1.05rem;
+        padding-right: 36px;
+      }
+      .quiz-desc {
+        font-size: 0.78rem;
+        margin-bottom: 12px;
+      }
+      .chip-grid {
+        gap: 7px;
+        margin-bottom: 16px;
+      }
+      .chip {
+        padding: 7px 11px;
+        font-size: 0.78rem;
+        border-radius: 16px;
+      }
+      .slider-container {
+        padding: 12px;
+        margin-bottom: 16px;
+      }
+      .quiz-nav button {
+        padding: 10px 16px;
+        font-size: 0.86rem;
+      }
+
+      /* WATCHLIST MODAL */
+      .drawer-list {
+        margin-top: 12px;
+        gap: 8px;
+      }
+      .drawer-item {
+        padding: 8px 10px;
+        gap: 10px;
+        border-radius: 8px;
+      }
+      .drawer-thumb {
+        width: 38px;
+        height: 54px;
+      }
+      .drawer-title {
+        font-size: 0.85rem;
+      }
+      .drawer-meta {
+        font-size: 0.72rem;
+      }
+
+      /* FORUM PAGE - FULL MOBILE APPLIKE */
+      .forum-nav-bar {
+        padding: 10px 14px;
+      }
+      .forum-title {
+        font-size: 0.95rem;
+      }
+      .new-thread-btn {
+        padding: 6px 11px;
+        font-size: 0.76rem;
+        border-radius: 12px;
+      }
+      .new-thread-btn .nt-btn-label { display: inline !important; }
+      .forum-tabbar {
+        padding: 6px 12px;
+        gap: 4px;
+      }
+      .ftab {
+        font-size: 0.78rem;
+        padding: 5px 12px;
+      }
+      .ftab-auth-btn {
+        font-size: 0.78rem;
+        padding: 5px 11px;
+      }
+      .threads-scroll {
+        padding: 12px 12px calc(80px + env(safe-area-inset-bottom, 0px));
+      }
+      .thread-card {
+        padding: 12px 13px;
+        border-radius: 10px;
+      }
+      .thread-text {
+        font-size: 0.84rem;
+      }
+
+      /* FORUM THREAD DETAIL & NEW THREAD MODALS */
+      .td-overlay, .nt-overlay {
+        align-items: flex-end;
+        padding: 0;
+      }
+      .td-content, .nt-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: 90vh;
+        max-height: 90dvh;
+        border-radius: 22px 22px 0 0;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        padding: 18px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+        animation: slideUpModal 220ms cubic-bezier(0.16,1,0.3,1);
+      }
+      .td-content::before, .nt-content::before {
+        content: '';
+        display: block;
+        width: 38px;
+        height: 4px;
+        background: rgba(255,255,255,0.22);
+        border-radius: 2px;
+        margin: -6px auto 14px auto;
+      }
+      .ci-textarea {
+        font-size: 0.82rem;
+      }
+    }
+
+    /* ===== FORUM REDESIGN ===== */
+    /* Hide floating menu when forum is open */
+    .floating-menu.forum-hidden { opacity: 0; pointer-events: none; transform: translateY(-20px) !important; }
+
+    /* Forum nav bar (top: back + title + new thread) */
+    .forum-nav-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: rgba(22,24,33,0.65); backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px); flex-shrink: 0;
+    }
+    .forum-title-area { flex: 1; display: flex; align-items: center; gap: 8px; }
+
+    /* Forum tab bar — buzlu cam (frosted glass, ana menü tarzı) */
+    .forum-tabbar {
+      display: flex; align-items: center; gap: 4px;
+      padding: 8px 16px;
+      background: rgba(22,24,33,0.5); backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      flex-shrink: 0; overflow-x: auto;
+    }
+    .forum-tabbar::-webkit-scrollbar { display: none; }
+    .ftab {
+      background: transparent; border: 1px solid transparent;
+      color: #d1d3dc; font: inherit; font-size: 0.85rem; font-weight: 600;
+      padding: 7px 16px; border-radius: 36px; cursor: pointer;
+      transition: all 200ms ease; white-space: nowrap; flex-shrink: 0;
+    }
+    .ftab:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.08); transform: translateY(-1px); }
+    .ftab.active { background: var(--accent); color: #fff; box-shadow: 0 4px 14px rgba(229,9,20,0.45); }
+    .ftab-spacer { flex: 1; min-width: 8px; }
+    .ftab-auth-btn {
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(22,24,33,0.6); border: 1px solid rgba(255,255,255,0.12);
+      color: #d1d3dc; font: inherit; font-size: 0.85rem; font-weight: 600;
+      padding: 6px 14px; border-radius: 36px; cursor: pointer;
+      transition: all 200ms ease; white-space: nowrap; flex-shrink: 0;
+    }
+    .ftab-auth-btn:hover { border-color: rgba(255,255,255,0.3); color: #fff; background: rgba(255,255,255,0.1); transform: translateY(-1px); }
+
+    /* Thread delete button */
+    .thread-delete-btn {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(229,9,20,0.08); border: 1px solid rgba(229,9,20,0.2);
+      border-radius: 7px; color: #f87171; font: inherit; font-size: 0.7rem; font-weight: 700;
+      padding: 3px 9px; cursor: pointer; transition: all 140ms ease;
+    }
+    .thread-delete-btn:hover { background: rgba(229,9,20,0.22); border-color: var(--accent); }
   </style>
 </head>
 <body>
 
-  <!-- ===== FLOATING MENU ===== -->
+  <!-- ===== FLOATING MENU (Desktop) ===== -->
   <div class="floating-menu hero-mode" id="smart-menu">
     <button id="open-quiz-btn" class="floating-btn" type="button">Test ile Ara</button>
+    <div class="pill-sep"></div>
     <button id="open-watchlist-btn" class="floating-btn" type="button">İzleme Listesi</button>
     <div class="pill-sep"></div>
     <button id="open-forum-btn" class="floating-btn" type="button">
@@ -387,9 +892,9 @@
       Forum
     </button>
     <div class="pill-sep"></div>
-    <button id="auth-btn" class="floating-btn" type="button">
-      <span id="auth-btn-icon">
-        <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+    <button id="auth-btn" class="floating-btn" type="button" style="display:flex;align-items:center;gap:7px;">
+      <span id="auth-btn-icon" style="display:flex;align-items:center;justify-content:center;line-height:1;">
+        <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="display:block;">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
           <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
           <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
@@ -399,6 +904,46 @@
       <span id="auth-btn-label" class="auth-label">Giriş</span>
     </button>
   </div>
+
+  <!-- ===== MOBILE BOTTOM NAVIGATION BAR ===== -->
+  <nav class="mobile-nav-bar" id="mobile-nav-bar" aria-label="Mobil Menü">
+    <button class="mobile-nav-item active" id="m-nav-discover" type="button" aria-label="Keşfet">
+      <div class="mobile-nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+      </div>
+      <span>Keşfet</span>
+    </button>
+    <button class="mobile-nav-item" id="m-nav-quiz" type="button" aria-label="Test">
+      <div class="mobile-nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+      </div>
+      <span>Test</span>
+    </button>
+    <button class="mobile-nav-item" id="m-nav-forum" type="button" aria-label="Forum">
+      <div class="mobile-nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <span>Forum</span>
+    </button>
+    <button class="mobile-nav-item" id="m-nav-watchlist" type="button" aria-label="Listem">
+      <div class="mobile-nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <span class="mobile-nav-badge" id="mobile-watchlist-badge">0</span>
+      </div>
+      <span>Listem</span>
+    </button>
+    <button class="mobile-nav-item" id="m-nav-auth" type="button" aria-label="Profil">
+      <div class="mobile-nav-icon" id="m-nav-auth-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="display:block;">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+      </div>
+      <span id="m-nav-auth-label">Giriş</span>
+    </button>
+  </nav>
 
   <!-- ===== HERO ===== -->
   <section class="hero" id="hero-section">
@@ -414,6 +959,14 @@
           <input id="search-input" type="search" placeholder="Yağmurlu günde izlenecek sakin bir yol filmi" autocomplete="off" spellcheck="false">
         </div>
       </form>
+      <div class="quick-mood-tags" id="quick-mood-tags">
+        <button type="button" class="mood-chip" data-mood="Yağmurlu günde izlenecek sakin bir yol filmi">Yağmurlu Gün</button>
+        <button type="button" class="mood-chip" data-mood="Beyin yakan ters köşe gizem filmi">Ters Köşe</button>
+        <button type="button" class="mood-chip" data-mood="Gülmekten kırıp geçiren neşeli komedi">Kahkaha Dolu</button>
+        <button type="button" class="mood-chip" data-mood="Uzayda geçen sürükleyici bilim kurgu">Bilim Kurgu</button>
+        <button type="button" class="mood-chip" data-mood="Nefes kesen gerilim ve kovalamaca">Gerilim</button>
+        <button type="button" class="mood-chip" data-mood="Duygusal, kalbe dokunan sıcak bir dram">Sıcak Dram</button>
+      </div>
     </div>
     <div class="scroll-down-btn" onclick="document.querySelector('.discover').scrollIntoView({behavior:'smooth'})">
       <span>keşfet</span>
@@ -509,22 +1062,38 @@
 
   <!-- ===== FORUM PAGE ===== -->
   <div id="forum-page" class="forum-page">
-    <div class="forum-header">
+    <!-- Top nav bar: back + title + new thread -->
+    <div class="forum-nav-bar">
       <button class="forum-back-btn" id="forum-back-btn" title="Ana Sayfaya Dön">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
       </button>
-      <span class="forum-title">Forum</span>
-      <div class="forum-tabs">
-        <button class="forum-tab active" data-cat="all">Tümü</button>
-        <button class="forum-tab" data-cat="Öneri">Öneri</button>
-        <button class="forum-tab" data-cat="Tartışma">Tartışma</button>
-        <button class="forum-tab" data-cat="Eleştiri">Eleştiri</button>
-        <button class="forum-tab" data-cat="Soru">Soru</button>
-        <button class="forum-tab" data-cat="Liste">Liste</button>
+      <div class="forum-title-area">
+        <span class="forum-title">Forum</span>
       </div>
       <button class="new-thread-btn" id="new-thread-btn" type="button">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         <span class="nt-btn-label">Yeni Konu</span>
+      </button>
+    </div>
+    <!-- Sticky category tab bar -->
+    <div class="forum-tabbar" id="forum-tabbar">
+      <button class="ftab active" data-cat="all">Tümü</button>
+      <button class="ftab" data-cat="Öneri">Öneri</button>
+      <button class="ftab" data-cat="Tartışma">Tartışma</button>
+      <button class="ftab" data-cat="Eleştiri">Eleştiri</button>
+      <button class="ftab" data-cat="Soru">Soru</button>
+      <button class="ftab" data-cat="Liste">Liste</button>
+      <div class="ftab-spacer"></div>
+      <button class="ftab-auth-btn" id="forum-auth-btn" type="button">
+        <span id="forum-auth-icon" style="display:flex;align-items:center;justify-content:center;">
+          <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true" style="display:block;">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+        </span>
+        <span id="forum-auth-label">Giriş Yap</span>
       </button>
     </div>
     <div class="threads-scroll">
@@ -721,6 +1290,7 @@
 
       // ── Auth ──────────────────────────────────────────────────────────────
       let currentUser = null;
+      let _syncForumAuth = () => {}; // will be replaced by forum module
       const authBtn = document.getElementById('auth-btn');
       const authBtnIcon = document.getElementById('auth-btn-icon');
       const authBtnLabel = document.getElementById('auth-btn-label');
@@ -738,6 +1308,23 @@
           authBtnLabel.textContent = 'Giriş';
           authBtnIcon.innerHTML = GOOGLE_G;
         }
+        // Sync mobile bottom nav auth
+        const mAuthLabel = document.getElementById('m-nav-auth-label');
+        const mAuthIcon = document.getElementById('m-nav-auth-icon');
+        if (mAuthLabel && mAuthIcon) {
+          if (user) {
+            const name = (user.displayName || 'Kullanıcı').split(' ')[0];
+            mAuthLabel.textContent = name;
+            mAuthIcon.innerHTML = user.photoURL
+              ? `<img class="mobile-nav-avatar" src="${user.photoURL}" alt="${escHtml(name)}">`
+              : GOOGLE_G;
+          } else {
+            mAuthLabel.textContent = 'Giriş';
+            mAuthIcon.innerHTML = GOOGLE_G;
+          }
+        }
+        // Sync forum auth button
+        _syncForumAuth(user);
       });
 
       authBtn.addEventListener('click', async () => {
@@ -751,8 +1338,20 @@
 
       // ── Watchlist (localStorage + Firestore sync) ─────────────────────────
       function getWatchlist() { return JSON.parse(localStorage.getItem('mood4kino_watchlist') || '[]'); }
+      function updateWatchlistBadge() {
+        const badge = document.getElementById('mobile-watchlist-badge');
+        if (!badge) return;
+        const count = getWatchlist().length;
+        if (count > 0) {
+          badge.textContent = count > 99 ? '99+' : count;
+          badge.style.display = 'flex';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
       function saveWatchlist(list) {
         localStorage.setItem('mood4kino_watchlist', JSON.stringify(list));
+        updateWatchlistBadge();
         if (currentUser) syncWatchlistToFirestore(list);
       }
       function isMovieInWatchlist(id) { return getWatchlist().some(m => m.id === id); }
@@ -773,6 +1372,7 @@
             const merged = [...remote];
             local.forEach(li => { if (!merged.some(ri => ri.id === li.id)) merged.push(li); });
             localStorage.setItem('mood4kino_watchlist', JSON.stringify(merged));
+            updateWatchlistBadge();
             if (merged.length !== remote.length) syncWatchlistToFirestore(merged);
           } else {
             if (local.length > 0) syncWatchlistToFirestore(local);
@@ -787,14 +1387,47 @@
       }
 
       // ── Movie card ────────────────────────────────────────────────────────
+      const LATIN_RE = /[A-Za-zÀ-öø-ÿğüşıöçĞÜŞİÖÇ]/;
+      const titleCache = new Map();
+
+      function getBestTitle(movie) {
+        if (movie.id && titleCache.has(movie.id)) return titleCache.get(movie.id);
+        const title = movie.title || '';
+        const original = movie.original_title || '';
+        if (LATIN_RE.test(title)) return title;
+        if (LATIN_RE.test(original)) return original;
+        return 'Yükleniyor...';
+      }
+
       function createMovieCard(movie) {
         const card = document.createElement('article'); card.className = 'movie-card';
         if (movie.poster_path) {
           const img = document.createElement('img'); img.className = 'movie-poster';
           img.src = `${IMAGE_BASE_URL}${movie.poster_path}`; img.alt = movie.title || ''; img.loading = 'lazy'; card.append(img);
         }
+        if (movie.vote_average) {
+          const badge = document.createElement('span');
+          badge.className = 'card-badge-rating';
+          badge.textContent = `★ ${movie.vote_average.toFixed(1)}`;
+          card.append(badge);
+        }
         const info = document.createElement('div'); info.className = 'movie-info';
-        const t = document.createElement('h3'); t.className = 'movie-title'; t.textContent = movie.title || movie.original_title || 'İsimsiz film'; info.append(t);
+        const t = document.createElement('h3'); t.className = 'movie-title'; t.textContent = getBestTitle(movie); info.append(t);
+
+        // Eğer başlık Latin alfabesinde değilse ve önbellekte yoksa backend film detayından İngilizce başlığı çek
+        const hasLatin = LATIN_RE.test(movie.title || '') || LATIN_RE.test(movie.original_title || '');
+        if (!hasLatin && movie.id && !titleCache.has(movie.id)) {
+          fetch(`${API_BASE}/film/${movie.id}`)
+            .then(r => r.ok ? r.json() : null)
+            .then(f => {
+              if (f && f.title && LATIN_RE.test(f.title)) {
+                titleCache.set(movie.id, f.title);
+                t.textContent = f.title;
+              }
+            })
+            .catch(() => {});
+        }
+
         const meta = document.createElement('div'); meta.className = 'movie-meta';
         const yr = document.createElement('span'); yr.textContent = movie.release_date ? movie.release_date.slice(0,4) : ''; meta.append(yr);
         if (movie.vote_average) { const sc = document.createElement('span'); sc.className = 'movie-score'; sc.textContent = `★ ${movie.vote_average.toFixed(1)}`; meta.append(sc); }
@@ -806,6 +1439,7 @@
       // ── Movie detail modal ────────────────────────────────────────────────
       async function showMovieDetails(movieId, isBackNav = false) {
         movieDetailModal.classList.remove('hidden-modal');
+        document.body.classList.add('modal-open');
         if (!isBackNav) movieHistoryStack.push(movieId);
         modalBackBtn.classList.toggle('hidden-modal', movieHistoryStack.length <= 1);
         modalBodyContent.innerHTML = `<p style="color:var(--muted);text-align:center;width:100%;padding:40px 0;">Detaylar yükleniyor...</p>`;
@@ -869,12 +1503,24 @@
       modalBackBtn.addEventListener('click', () => {
         if (movieHistoryStack.length > 1) { movieHistoryStack.pop(); showMovieDetails(movieHistoryStack[movieHistoryStack.length - 1], true); }
       });
-      modalCloseBtn.addEventListener('click', () => { movieDetailModal.classList.add('hidden-modal'); movieHistoryStack = []; });
+      modalCloseBtn.addEventListener('click', () => {
+        movieDetailModal.classList.add('hidden-modal');
+        movieHistoryStack = [];
+        document.body.classList.remove('modal-open');
+      });
 
       // ── Watchlist drawer ──────────────────────────────────────────────────
       function renderWatchlistDrawer() {
         const list = getWatchlist();
-        if (!list.length) { watchlistItemsContainer.innerHTML = '<p style="color:var(--muted);text-align:center;padding:24px 0;">Henüz listenize film eklemediniz.</p>'; return; }
+        if (!list.length) {
+          watchlistItemsContainer.innerHTML = `
+            <div style="text-align:center;padding:36px 16px;">
+              <div style="font-size:2.5rem;margin-bottom:10px;">🍿</div>
+              <p style="color:var(--text);font-weight:600;font-size:0.95rem;margin:0 0 6px;">İzleme Listen Boş</p>
+              <p style="color:var(--muted);font-size:0.82rem;margin:0 0 16px;line-height:1.5;">Popüler filmlerden veya AI aramadan beğendiğin filmleri listene kaydedebilirsin.</p>
+            </div>`;
+          return;
+        }
         watchlistItemsContainer.innerHTML = list.map(m => `
           <div class="drawer-item">
             ${m.poster_path ? `<img class="drawer-thumb" src="${IMAGE_BASE_URL}${m.poster_path}" alt="">` : ''}
@@ -889,7 +1535,12 @@
       window.removeFromDrawer = (id) => { saveWatchlist(getWatchlist().filter(m => m.id !== id)); renderWatchlistDrawer(); };
 
       // ── Quiz ──────────────────────────────────────────────────────────────
-      openQuizBtn.addEventListener('click', () => { quizModal.classList.remove('hidden-modal'); goToStep(1); });
+      openQuizBtn.addEventListener('click', () => {
+        quizModal.classList.remove('hidden-modal');
+        document.body.classList.add('modal-open');
+        if (window.setActiveMobileNav) window.setActiveMobileNav('quiz');
+        goToStep(1);
+      });
       function goToStep(n) { [step1,step2,step3].forEach((s,i) => s.classList.toggle('active', i+1===n)); }
       document.querySelectorAll('#genre-chips .chip').forEach(c => c.addEventListener('click', () => c.classList.toggle('selected')));
       document.querySelectorAll('#year-chips .chip').forEach(c => c.addEventListener('click', () => { document.querySelectorAll('#year-chips .chip').forEach(x => x.classList.remove('selected')); c.classList.add('selected'); }));
@@ -900,6 +1551,8 @@
       document.querySelector('#quiz-prev-3').addEventListener('click', () => goToStep(2));
       document.querySelector('#quiz-finish-btn').addEventListener('click', async () => {
         quizModal.classList.add('hidden-modal');
+        document.body.classList.remove('modal-open');
+        if (window.setActiveMobileNav) window.setActiveMobileNav('discover');
         const genres = Array.from(document.querySelectorAll('#genre-chips .chip.selected')).map(c => c.dataset.id).join(',');
         const yc = document.querySelector('#year-chips .chip.selected');
         document.querySelector('.discover').scrollIntoView({behavior:'smooth'});
@@ -915,8 +1568,18 @@
           movieCount.textContent = `Kriterlerinize uyan ${movies.length} film bulundu`;
         } catch { movieGrid.innerHTML = '<p class="movie-status">Filtreleme yapılamadı.</p>'; }
       });
-      [watchlistCloseBtn, quizCloseBtn].forEach(b => b.addEventListener('click', () => { watchlistModal.classList.add('hidden-modal'); quizModal.classList.add('hidden-modal'); }));
-      openWatchlistBtn.addEventListener('click', () => { renderWatchlistDrawer(); watchlistModal.classList.remove('hidden-modal'); });
+      [watchlistCloseBtn, quizCloseBtn].forEach(b => b.addEventListener('click', () => {
+        watchlistModal.classList.add('hidden-modal');
+        quizModal.classList.add('hidden-modal');
+        document.body.classList.remove('modal-open');
+        if (window.setActiveMobileNav) window.setActiveMobileNav('discover');
+      }));
+      openWatchlistBtn.addEventListener('click', () => {
+        renderWatchlistDrawer();
+        watchlistModal.classList.remove('hidden-modal');
+        document.body.classList.add('modal-open');
+        if (window.setActiveMobileNav) window.setActiveMobileNav('watchlist');
+      });
 
       // ── Popular & AI search ───────────────────────────────────────────────
       async function loadPopularMovies() {
@@ -933,7 +1596,15 @@
         document.querySelector('.discover').scrollIntoView({behavior:'smooth'});
         movieGrid.innerHTML = '<p class="movie-status">Yapay Zeka öneri hazırlıyor, lütfen bekleyin...</p>';
         try {
-          const r = await fetch(`${API_BASE}/ai-ara?prompt=${encodeURIComponent(prompt)}`);
+          let r = null;
+          try {
+            r = await fetch(`${API_BASE}/ai-ara?prompt=${encodeURIComponent(prompt)}`);
+          } catch (_) {
+            r = null;
+          }
+          if (!r || !r.ok) {
+            r = await fetch(`https://mood4kino.online/ai-ara?prompt=${encodeURIComponent(prompt)}`);
+          }
           if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.hata || 'Hata'); }
           const d = await r.json();
           const movies = d.results || [];
@@ -945,6 +1616,115 @@
       searchForm.addEventListener('submit', e => { e.preventDefault(); const p = searchInput.value.trim(); if (p) searchMoviesWithAI(p); });
       loadPopularMovies();
 
+      // ── Mobile Bottom Navigation & Quick Mood Chips ────────────────────────
+      const mNavDiscover = document.getElementById('m-nav-discover');
+      const mNavQuiz = document.getElementById('m-nav-quiz');
+      const mNavForum = document.getElementById('m-nav-forum');
+      const mNavWatchlist = document.getElementById('m-nav-watchlist');
+      const mNavAuth = document.getElementById('m-nav-auth');
+      const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+
+      window.setActiveMobileNav = function(target) {
+        mobileNavItems.forEach(b => b.classList.remove('active'));
+        if (target === 'discover' && mNavDiscover) mNavDiscover.classList.add('active');
+        if (target === 'quiz' && mNavQuiz) mNavQuiz.classList.add('active');
+        if (target === 'forum' && mNavForum) mNavForum.classList.add('active');
+        if (target === 'watchlist' && mNavWatchlist) mNavWatchlist.classList.add('active');
+        if (target === 'auth' && mNavAuth) mNavAuth.classList.add('active');
+      };
+
+      function closeAllModals() {
+        movieDetailModal.classList.add('hidden-modal');
+        watchlistModal.classList.add('hidden-modal');
+        quizModal.classList.add('hidden-modal');
+        const fp = document.getElementById('forum-page');
+        if (fp && fp.classList.contains('open')) {
+          fp.classList.remove('open');
+          smartMenu.classList.remove('forum-hidden');
+        }
+        document.body.classList.remove('modal-open');
+      }
+
+      if (mNavDiscover) {
+        mNavDiscover.addEventListener('click', () => {
+          closeAllModals();
+          window.setActiveMobileNav('discover');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      }
+
+      if (mNavQuiz) {
+        mNavQuiz.addEventListener('click', () => {
+          closeAllModals();
+          quizModal.classList.remove('hidden-modal');
+          document.body.classList.add('modal-open');
+          goToStep(1);
+          window.setActiveMobileNav('quiz');
+        });
+      }
+
+      if (mNavForum) {
+        mNavForum.addEventListener('click', () => {
+          closeAllModals();
+          const fp = document.getElementById('forum-page');
+          if (fp) fp.classList.add('open');
+          smartMenu.classList.add('forum-hidden');
+          document.body.classList.add('modal-open');
+          window.setActiveMobileNav('forum');
+          if (typeof loadThreads === 'function') loadThreads();
+        });
+      }
+
+      if (mNavWatchlist) {
+        mNavWatchlist.addEventListener('click', () => {
+          closeAllModals();
+          renderWatchlistDrawer();
+          watchlistModal.classList.remove('hidden-modal');
+          document.body.classList.add('modal-open');
+          window.setActiveMobileNav('watchlist');
+        });
+      }
+
+      if (mNavAuth) {
+        mNavAuth.addEventListener('click', async () => {
+          if (currentUser) {
+            if (confirm('Oturumu kapatmak istiyor musunuz?')) {
+              auth.signOut();
+            }
+          } else {
+            try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+            catch (e) { if (e.code !== 'auth/popup-closed-by-user') console.error('Auth:', e); }
+          }
+        });
+      }
+
+      // Quick mood chips handler
+      document.querySelectorAll('.mood-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const mood = chip.dataset.mood;
+          if (mood) {
+            searchInput.value = mood;
+            searchMoviesWithAI(mood);
+          }
+        });
+      });
+
+      // Dismiss modals when clicking backdrop
+      [movieDetailModal, watchlistModal, quizModal].forEach(modal => {
+        if (modal) {
+          modal.addEventListener('click', e => {
+            if (e.target === modal) {
+              modal.classList.add('hidden-modal');
+              document.body.classList.remove('modal-open');
+              if (window.setActiveMobileNav) window.setActiveMobileNav('discover');
+            }
+          });
+        }
+      });
+
+      // Initial badge update
+      updateWatchlistBadge();
+
       // ══════════════════════════════════════════════════════════════════════
       // FORUM MODULE
       // ══════════════════════════════════════════════════════════════════════
@@ -952,35 +1732,87 @@
       const forumPage = document.getElementById('forum-page');
       const openForumBtn = document.getElementById('open-forum-btn');
       const forumBackBtn = document.getElementById('forum-back-btn');
+      const forumAuthBtn = document.getElementById('forum-auth-btn');
+      const forumAuthIcon = document.getElementById('forum-auth-icon');
+      const forumAuthLabel = document.getElementById('forum-auth-label');
       let forumCurrentCat = 'all';
+      let allThreadsCache = []; // cache all threads for client-side filter
 
-      openForumBtn.addEventListener('click', () => { forumPage.classList.add('open'); loadThreads(); });
-      forumBackBtn.addEventListener('click', () => forumPage.classList.remove('open'));
+      // Sync forum auth button with auth state (override global stub)
+      _syncForumAuth = function(user) {
+        if (user) {
+          const name = (user.displayName || 'Kullanıcı').split(' ')[0];
+          forumAuthLabel.textContent = name;
+          forumAuthIcon.innerHTML = user.photoURL
+            ? `<img class="auth-avatar" src="${user.photoURL}" alt="${escHtml(name)}">`
+            : GOOGLE_G;
+        } else {
+          forumAuthLabel.textContent = 'Giriş Yap';
+          forumAuthIcon.innerHTML = GOOGLE_G;
+        }
+      };
+      // Immediately sync with current state
+      _syncForumAuth(currentUser);
 
-      document.querySelectorAll('.forum-tab').forEach(tab => {
+      forumAuthBtn.addEventListener('click', async () => {
+        if (currentUser) { auth.signOut(); }
+        else {
+          try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+          catch (e) { if (e.code !== 'auth/popup-closed-by-user') console.error('Auth:', e); }
+        }
+      });
+
+      openForumBtn.addEventListener('click', () => {
+        forumPage.classList.add('open');
+        smartMenu.classList.add('forum-hidden');
+        document.body.classList.add('modal-open');
+        if (window.setActiveMobileNav) window.setActiveMobileNav('forum');
+        loadThreads();
+      });
+      forumBackBtn.addEventListener('click', () => {
+        forumPage.classList.remove('open');
+        smartMenu.classList.remove('forum-hidden');
+        document.body.classList.remove('modal-open');
+        if (window.setActiveMobileNav) window.setActiveMobileNav('discover');
+      });
+
+      document.querySelectorAll('.ftab').forEach(tab => {
         tab.addEventListener('click', () => {
-          document.querySelectorAll('.forum-tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
           tab.classList.add('active');
           forumCurrentCat = tab.dataset.cat;
-          loadThreads();
+          renderThreadsFromCache();
         });
       });
 
-      // ── Load threads ──────────────────────────────────────────────────────
+      // ── Load threads (always fetch all, filter client-side) ───────────────
       async function loadThreads() {
         const container = document.getElementById('threads-list');
         container.innerHTML = '<div class="forum-loading">Yükleniyor...</div>';
         try {
-          let q = db.collection('threads').orderBy('createdAt', 'desc').limit(60);
-          if (forumCurrentCat !== 'all') q = db.collection('threads').where('category','==',forumCurrentCat).orderBy('createdAt','desc').limit(60);
+          // Fetch all recent threads without compound index requirement
+          const q = db.collection('threads').orderBy('createdAt', 'desc').limit(120);
           const snap = await q.get();
-          if (snap.empty) { container.innerHTML = '<div class="forum-empty">Henüz konu açılmamış.<br>İlk konuyu sen aç!</div>'; return; }
-          container.innerHTML = '';
-          snap.forEach(doc => container.appendChild(buildThreadCard({ id: doc.id, ...doc.data() })));
+          allThreadsCache = [];
+          snap.forEach(doc => allThreadsCache.push({ id: doc.id, ...doc.data() }));
+          renderThreadsFromCache();
         } catch (e) {
           console.error('loadThreads:', e);
           container.innerHTML = '<div class="forum-error">Konular yüklenemedi.<br><small>Firebase Console\'dan Firestore ve Authentication\'ı etkinleştirmeyi unutma.</small></div>';
         }
+      }
+
+      function renderThreadsFromCache() {
+        const container = document.getElementById('threads-list');
+        const filtered = forumCurrentCat === 'all'
+          ? allThreadsCache
+          : allThreadsCache.filter(t => t.category === forumCurrentCat);
+        if (!filtered.length) {
+          container.innerHTML = '<div class="forum-empty">Bu kategoride henüz konu açılmamış.<br>İlk konuyu sen aç!</div>';
+          return;
+        }
+        container.innerHTML = '';
+        filtered.forEach(thread => container.appendChild(buildThreadCard(thread)));
       }
 
       // ── Build thread card ─────────────────────────────────────────────────
@@ -996,7 +1828,11 @@
         const revealHtml = thread.isSpoiler ? '<div class="spoiler-reveal-overlay"><button class="spoiler-reveal-btn" type="button">Spoiler — Göster</button></div>' : '';
         const authorImg = thread.photoURL ? `<img class="thread-author-img" src="${thread.photoURL}" alt="">` : '<div class="thread-author-ph"></div>';
 
+        const isOwn = currentUser && currentUser.uid === thread.uid;
+        const deleteHtml = isOwn ? `<button class="thread-delete-btn" type="button">Sil</button>` : '';
+
         card.innerHTML = `
+          ${deleteHtml}
           <div class="thread-top-row">
             <span class="cat-badge ${catClass(thread.category)}">${escHtml(thread.category)}</span>
             ${filmHtml}${spoilerHtml}
@@ -1020,6 +1856,24 @@
           const area = card.querySelector('.thread-content-area');
           revBtn.addEventListener('click', e => { e.stopPropagation(); area.classList.remove('spoiler-blur'); revBtn.parentElement.style.display = 'none'; });
         }
+
+        if (isOwn) {
+          const delBtn = card.querySelector('.thread-delete-btn');
+          delBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (!confirm('Bu konuyu silmek istediğine emin misin?')) return;
+            try {
+              await db.collection('threads').doc(thread.id).delete();
+              // Remove from cache and re-render
+              allThreadsCache = allThreadsCache.filter(t => t.id !== thread.id);
+              renderThreadsFromCache();
+            } catch (err) {
+              console.error('Delete thread:', err);
+              alert('Konu silinirken hata oluştu.');
+            }
+          });
+        }
+
         card.addEventListener('click', () => openThreadDetail(thread));
         return card;
       }
@@ -1252,11 +2106,8 @@
           newThreadModal.classList.add('hidden-modal');
           resetNT();
           if (forumPage.classList.contains('open')) {
-            if (forumCurrentCat !== 'all' && forumCurrentCat !== publishedCat) {
-              document.querySelector('.forum-tab[data-cat="all"]').click();
-            } else {
-              loadThreads();
-            }
+            // Reload from server to include the new post
+            loadThreads();
           }
         } catch (e) {
           console.error('Create thread:', e);
