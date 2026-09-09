@@ -10,7 +10,7 @@ app = Flask(__name__, static_folder="static", static_url_path="/static")
 CORS(app)
 
 TMDB_API_KEY = os.environ.get("TMDB_API_KEY", "95122df100f8d10457c8e200131f3ee5")
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
 
 NON_LATIN_REGEX = re.compile(
     r'[\u0400-\u04FF'  # Kiril (Cyrillic)
